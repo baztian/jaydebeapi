@@ -28,7 +28,7 @@ setup(
     author = 'Bastian Bowe',
     author_email = 'bastian.bowe@gmail.com',
     license = 'GNU LGPL',
-    url='https://code.launchpad.net/jaydebeapi',
+    url='https://launchpad.net/jaydebeapi',
     description=('A bridge from JDBC database drivers to Python DB-API.'),
     long_description=file('README.rst').read(),
     keywords = ('db api java jdbc bridge connect sql jpype jython'),
