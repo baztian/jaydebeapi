@@ -1,0 +1,9 @@
+./*.class
+./build
+./dist
+./src/**/*.class
+./src/.ropeproject/globalnames
+./src/.ropeproject/history
+./src/.ropeproject/objectdb
+**/*.bak
+**/mem.*
