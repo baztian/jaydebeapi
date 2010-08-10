@@ -2,7 +2,7 @@ Metadata-Version: 1.0
 Name: JayDeBeApi
 Version: 0.1
 Summary: A bridge from JDBC database drivers to Python DB-API.
-Home-page: https://code.launchpad.net/jaydebeapi
+Home-page: https://launchpad.net/jaydebeapi
 Author: Bastian Bowe
 Author-email: bastian.bowe@gmail.com
 License: GNU LGPL
