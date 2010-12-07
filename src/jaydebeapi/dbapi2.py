@@ -20,11 +20,21 @@
 import datetime
 import exceptions
 import time
+import re
 import sys
 
 _jdbc_connect = None
 
 def _jdbc_connect_jython(jclassname, *args):
+    if _converters is None:
+        from java.sql import Types
+        types = Types
+        types_map = {}
+        const_re = re.compile('[A-Z][A-Z_]*$')
+        for i in dir(types):
+            if const_re.match(i):
+                types_map[i] = getattr(types, i)
+        _init_converters(types_map)
     # register driver for DriverManager
     __import__(jclassname)
     from java.sql import DriverManager
@@ -42,10 +52,16 @@ def _jdbc_connect_jpype(jclassname, *args):
         jpype.startJVM(jpype.getDefaultJVMPath())
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
+    if _converters is None:
+        types = jpype.java.sql.Types
+        types_map = {}
+        for i in types.__javaclass__.getClassFields():
+            types_map[i.getName()] = i.getStaticAttribute()
+        _init_converters(types_map)
     # register driver for DriverManager
     jpype.JClass(jclassname)
     return jpype.java.sql.DriverManager.getConnection(*args)
-    
+
 def _prepare_jpype():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jpype
@@ -219,9 +235,7 @@ class Cursor(object):
 
     def _set_stmt_parms(self, prep_stmt, *parameters):
         for i in range(len(parameters)):
-            sqltype = TYPE_MAP[type(parameters[i])]
-            setter = getattr(prep_stmt, 'set%s' % METHOD_MAP[sqltype])
-            setter(i + 1, parameters[i])
+            prep_stmt.setObject(i + 1, parameters[i])
 
     def execute(self, operation, *parameters):
         self._close_last()
@@ -251,9 +265,8 @@ class Cursor(object):
         row = []
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
-            getter = getattr(self._rs, 'get%s' % METHOD_MAP[sqltype])
-            v = getter(col)
-            converter = TO_PY_MAP.get(sqltype)
+            v = self._rs.getObject(col)
+            converter = _converters.get(sqltype)
             if converter:
                 v = converter(v)
             row.append(v)
@@ -296,74 +309,6 @@ class Cursor(object):
     def setoutputsize(self, size, column):
         pass
 
-class JavaSqlTypes(object):
-    # from java.sql.Types
-    ARRAY=2003
-    BIGINT=-5
-    BINARY=-2
-    BIT=-7
-    BLOB=2004
-    BOOLEAN=16
-    CHAR=1
-    CLOB=2005
-    DATALINK=70
-    DATE=91
-    DECIMAL=3
-    DISTINCT=2001
-    DOUBLE=8
-    FLOAT=6
-    INTEGER=4
-    JAVA_OBJECT=2000
-    LONGVARBINARY=-4
-    LONGVARCHAR=-1
-    NULL=0
-    NUMERIC=2
-    OTHER=1111
-    REAL=7
-    REF=2006
-    SMALLINT=5
-    STRUCT=2002
-    TIME=92
-    TIMESTAMP=93
-    TINYINT=-6
-    VARBINARY=-3
-    VARCHAR=12
-
-METHOD_MAP = {
-    JavaSqlTypes.ARRAY: 'Array',
-    #AsciiStream
-    JavaSqlTypes.NUMERIC: 'BigDecimal',
-    JavaSqlTypes.DECIMAL: 'BigDecimal',
-    #BinaryStream
-    JavaSqlTypes.BLOB: 'Blob',
-    JavaSqlTypes.BOOLEAN: 'Boolean',
-    JavaSqlTypes.CHAR: 'String',
-    JavaSqlTypes.BINARY: 'Bytes',
-    #CharacterStream
-    JavaSqlTypes.CLOB: 'Clob',
-    JavaSqlTypes.DOUBLE: 'Double',
-    JavaSqlTypes.DATE: 'Date',
-    JavaSqlTypes.FLOAT: 'Float',
-    JavaSqlTypes.INTEGER: 'Int',
-    JavaSqlTypes.BIGINT: 'Long',
-    JavaSqlTypes.SMALLINT: 'Short',
-    JavaSqlTypes.VARCHAR: 'String',
-    JavaSqlTypes.TIME: 'Time',
-    JavaSqlTypes.TIMESTAMP: 'Timestamp',
-    JavaSqlTypes.NULL: 'Null',
-}
-
-TYPE_MAP = {
-    int: JavaSqlTypes.INTEGER,
-    long: JavaSqlTypes.BIGINT,
-    float: JavaSqlTypes.DOUBLE,
-    type(None): JavaSqlTypes.NULL,
-    str: JavaSqlTypes.VARCHAR,
-    bool: JavaSqlTypes.BOOLEAN,
-#    buffer: JavaSqlTypes.BINARY,
-    unicode: JavaSqlTypes.VARCHAR,
-    }
-
 def to_datetime(java_val):
 #    d=datetime.datetime.strptime(timestmp.toString()[:-7], "%Y-%m-%d %H:%M:%S")
 #    return d.replace(microsecond=int(str(timestmp.getNanos())[:6]))
@@ -377,9 +322,26 @@ def to_date(java_val):
 def to_float(java_val):
     return java_val.doubleValue()
 
-TO_PY_MAP = {
-    JavaSqlTypes.TIMESTAMP: to_datetime,
-    JavaSqlTypes.DATE: to_date,
-    JavaSqlTypes.DECIMAL: to_float,
-    JavaSqlTypes.NUMERIC: to_float,
+def _init_converters(types_map):
+    """Prepares the converters for conversion of java types to python
+    objects.
+    types_map: Mapping of java.sql.Types field name to java.sql.Types
+    field constant value"""
+    global _converters
+    _converters = {}
+    for i in _DEFAULT_CONVERTERS:
+        const_val = types_map[i]
+        _converters[const_val] = _DEFAULT_CONVERTERS[i]
+
+# Mapping from java.sql.Types field to converter method
+_converters = None
+
+_DEFAULT_CONVERTERS = {
+    # see
+    # http://download.oracle.com/javase/1.4.2/docs/api/java/sql/Types.html
+    # for possible keys
+    'TIMESTAMP': to_datetime,
+    'DATE': to_date,
+    'DECIMAL': to_float,
+    'NUMERIC': to_float,
 }
