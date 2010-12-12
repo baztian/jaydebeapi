@@ -116,6 +116,11 @@ distribution for details.
 Changelog
 =========
 
+- 0.1.1
+
+  - Fixed bug #688290 "NULL values with converters error on fetch."
+  - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
+
 - 0.1
 
   - Initial release
