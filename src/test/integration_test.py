@@ -93,20 +93,20 @@ class IntegrationTest(TestCase):
         cursor = self.conn.cursor()
         cursor.execute("select * from konto")
         result = cursor.fetchall()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4),
-         (u'2009-09-11 14:15:22.123456', 19, 12.9)] == result
+        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
+         (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)] == result
 
     def test_execute_and_fetch_parameter(self):
         cursor = self.conn.cursor()
         cursor.execute("select * from konto where konto_nr = ?", 18)
         result = cursor.fetchall()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4)] == result
+        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
 
     def test_execute_and_fetchone(self):
         cursor = self.conn.cursor()
         cursor.execute("select * from konto order by konto_nr")
         result = cursor.fetchone()
-        assert (u'2009-09-10 14:15:22.123456', 18, 12.4) == result
+        assert (u'2009-09-10 14:15:22.123456', 18, 12.4, None) == result
 
     def test_execute_reset_description_without_execute_result(self):
         """Excpect the descriptions property being reset when no query
@@ -130,7 +130,7 @@ class IntegrationTest(TestCase):
         cursor = self.conn.cursor()
         cursor.execute("select * from konto order by konto_nr")
         result = cursor.fetchmany()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4)] == result
+        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
 
     def test_executemany(self):
         cursor = self.conn.cursor()

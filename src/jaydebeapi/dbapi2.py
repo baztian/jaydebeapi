@@ -266,9 +266,10 @@ class Cursor(object):
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
             v = self._rs.getObject(col)
-            converter = _converters.get(sqltype)
-            if converter:
-                v = converter(v)
+            if v:
+                converter = _converters.get(sqltype)
+                if converter:
+                    v = converter(v)
             row.append(v)
         return tuple(row)
 
