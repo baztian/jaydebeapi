@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: JayDeBeApi
-Version: 0.1
+Version: 0.1.1
 Summary: A bridge from JDBC database drivers to Python DB-API.
 Home-page: https://launchpad.net/jaydebeapi
 Author: Bastian Bowe
@@ -123,6 +123,11 @@ Description: ===================================================================
         
         Changelog
         =========
+        
+        - 0.1.1
+        
+          - Fixed bug #688290 "NULL values with converters error on fetch."
+          - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
         
         - 0.1
         
