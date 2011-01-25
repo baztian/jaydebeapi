@@ -1,2 +1,3 @@
 recursive-include src/test *.py *.sql
 include README* COPYING* ez_setup.py
+prune *~
