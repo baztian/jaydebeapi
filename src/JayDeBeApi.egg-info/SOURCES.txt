@@ -1,3 +1,8 @@
+COPYING
+COPYING.LESSER
+MANIFEST.in
+README.rst
+ez_setup.py
 setup.py
 src/JayDeBeApi.egg-info/PKG-INFO
 src/JayDeBeApi.egg-info/SOURCES.txt
@@ -5,3 +10,6 @@ src/JayDeBeApi.egg-info/dependency_links.txt
 src/JayDeBeApi.egg-info/top_level.txt
 src/jaydebeapi/__init__.py
 src/jaydebeapi/dbapi2.py
+src/test/integration_test.py
+src/test/data/create.sql
+src/test/data/insert.sql

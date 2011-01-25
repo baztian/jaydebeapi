@@ -116,6 +116,10 @@ distribution for details.
 Changelog
 =========
 
+- 0.1.2
+
+  - ``easy_install JayDeBeApi`` should really work
+
 - 0.1.1
 
   - Fixed bug #688290 "NULL values with converters error on fetch."
