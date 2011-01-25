@@ -7,3 +7,4 @@
 ./src/.ropeproject/objectdb
 **/*.bak
 **/mem.*
+**/*.log
