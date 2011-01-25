@@ -24,7 +24,7 @@ print find_packages('src')
 setup(
     #basic package data
     name = 'JayDeBeApi',
-    version = '0.1.1',
+    version = '0.1.2',
     author = 'Bastian Bowe',
     author_email = 'bastian.bowe@gmail.com',
     license = 'GNU LGPL',
