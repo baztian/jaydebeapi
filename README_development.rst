@@ -15,6 +15,12 @@ Build a new release
 
 2. Do your changes.
 
+3. Assert the right connect method is configured for tests.
+
+4. Run test suite. ::
+
+    $ nosetests
+
 3. Add a changelog entry to ``README.rst``.
 
 4. Increase version in ``setup.py``.

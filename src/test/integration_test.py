@@ -68,11 +68,15 @@ class IntegrationTest(TestCase):
             jpype.attachThreadToJVM()
 
     def connect(self):
+        # rename the latter connect method to run tests against
+        # pysqlite
+        msg = "Warinng: Your are not running the tests against JayDeBeApi."
+        print >> sys.stderr, msg
         import sqlite3
         return sqlite3.connect(':memory:')
 
-    def connect_(self):
-        jar_names = [ 'hsqldb.jar', 'sqlitejdbc-v056.jar', 'sqlite.jar' ]
+    def connect(self):
+        jar_names = [ 'sqlitejdbc-v056.jar', 'hsqldb.jar', 'sqlite.jar' ]
         jars = [ path.join(jar_dir, i) for i in jar_names ]
         if is_jython():
             sys.path.extend(jars)
@@ -93,7 +97,7 @@ class IntegrationTest(TestCase):
         # conn = jaydebeapi.connect('SQLite.JDBCDriver',
         #                           'jdbc:sqlite:/:memory:')
         return conn
-    
+
     def setUp(self):
         self.conn = self.connect() 
         self.sql_file(create_sql)
