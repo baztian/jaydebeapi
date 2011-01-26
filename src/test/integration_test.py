@@ -105,31 +105,31 @@ class IntegrationTest(TestCase):
 
     def tearDown(self):
         cursor = self.conn.cursor()
-        cursor.execute("drop table konto");
+        cursor.execute("drop table ACCOUNT");
         self.conn.close()
 
     def test_execute_and_fetch_no_data(self):
         cursor = self.conn.cursor()
-        stmt = "select * from konto where konto_id is null"
+        stmt = "select * from ACCOUNT where ACCOUNT_ID is null"
         cursor.execute(stmt)
         assert [] == cursor.fetchall()
 
     def test_execute_and_fetch(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto")
+        cursor.execute("select * from ACCOUNT")
         result = cursor.fetchall()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
          (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)] == result
 
     def test_execute_and_fetch_parameter(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto where konto_nr = ?", (18,))
+        cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
         result = cursor.fetchall()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
 
     def test_execute_and_fetchone(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto order by konto_nr")
+        cursor.execute("select * from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchone()
         assert (u'2009-09-10 14:15:22.123456', 18, 12.4, None) == result
         cursor.close()
@@ -139,22 +139,22 @@ class IntegrationTest(TestCase):
         has been made via execute method.
         """
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto")
+        cursor.execute("select * from ACCOUNT")
         assert None != cursor.description
         cursor.fetchone()
-        cursor.execute("delete from konto")
+        cursor.execute("delete from ACCOUNT")
         assert None == cursor.description
 
     def test_execute_and_fetchone_after_end(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto where konto_nr = ?", (18,))
+        cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
         cursor.fetchone()
         result = cursor.fetchone()
         assert None is result
 
     def test_execute_and_fetchmany(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from konto order by konto_nr")
+        cursor.execute("select * from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchmany()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
         # TODO: find out why this cursor has to be closed in order to
@@ -163,7 +163,8 @@ class IntegrationTest(TestCase):
 
     def test_executemany(self):
         cursor = self.conn.cursor()
-        stmt = "insert into Konto (KONTO_ID, KONTO_NR, SALDO) values (?, ?, ?)"
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE)" \
+               " values (?, ?, ?)"
         parms = (
             ( '2009-09-11 14:15:22.123450', 20, 13.1 ),
             ( '2009-09-11 14:15:22.123451', 21, 13.2 ),
