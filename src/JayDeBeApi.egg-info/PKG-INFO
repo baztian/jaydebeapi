@@ -7,7 +7,7 @@ Author: Bastian Bowe
 Author-email: bastian.bowe@gmail.com
 License: GNU LGPL
 Description: =====================================================================
-         JayDeBeApi - bridge from JDBC database drivers to Python DB-API
+        JayDeBeApi - bridge from JDBC database drivers to Python DB-API
         =====================================================================
         
         The JayDeBeApi module allows you to connect from Python code to
@@ -18,10 +18,6 @@ Description: ===================================================================
         It works on ordinary Python (cPython) using the JPype_ Java
         integration or on `Jython <http://www.jython.org/>`_ to make use of
         the Java JDBC driver.
-        
-        It has been tested with `Hypersonic SQL (HSQLDB)
-        <http://hsqldb.org/>`_ and `IBM DB2
-        <http://www.ibm.com/software/data/db2/>`_ for z/OS.
         
         In contrast to zxJDBC from the Jython project JayDeBeApi let's you
         access a database with Jython AND Python with only minor code
@@ -37,7 +33,7 @@ Description: ===================================================================
         You can get and install JayDeBeApi with `easy_install
         <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ ::
         
-            $ easy_install JayDeBeApi
+        $ easy_install JayDeBeApi
         
         If you want to install JayDeBeApi in Jython make sure to have
         EasyInstall available for it.
@@ -45,15 +41,15 @@ Description: ===================================================================
         Or you can get a copy of the source branch using `bzr
         <http://bazaar.canonical.com/>`_ by running ::
         
-            $ bzr branch lp:jaydebeapi
+        $ bzr branch lp:jaydebeapi
         
         and install it with ::
         
-            $ python setup.py install
+        $ python setup.py install
         
         or if you are using Jython use ::
         
-            $ jython setup.py install
+        $ jython setup.py install
         
         It has been tested with Jython 2.5.2.
         
@@ -92,10 +88,11 @@ Description: ===================================================================
         access the database driver's jar files. If I want to connect to a HSQL
         in memory database on my Ubuntu machine I'm starting Python by running ::
         
-            $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
+        $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
         
         Now I have to configure JPype
         
+        >>> import jpype
         >>> jar = '/path/to/my/driver/hsqldb.jar'
         >>> args='-Djava.class.path=%s' % jar
         >>> jpype.startJVM(jvm_path, args)
@@ -105,6 +102,19 @@ Description: ===================================================================
         >>> jar = '/path/to/my/driver/hsqldb.jar'
         >>> import sys
         >>> sys.path.append(jar)
+        
+        Supported databases
+        ===================
+        
+        In theory every database with a suitable JDBC driver should work. It
+        is known to work with the following databases:
+        
+        * `SQLite 3 <http://www.sqlite.org/>`_ using `SqliteJDBC
+        <http://www.zentus.com/sqlitejdbc/>`_ v056
+        * `Hypersonic SQL (HSQLDB) <http://hsqldb.org/>`_ 1.8.1.3
+        * `IBM DB2 <http://www.ibm.com/software/data/db2/>`_ for z/OS using
+        JDBC type 4 drivers.
+        
         
         Contributing
         ============
@@ -124,27 +134,32 @@ Description: ===================================================================
         Changelog
         =========
         
+        - trunk
+        
+        - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
+        instead of ``curs.execute('foo ?', bar, baz)``.
+        
         - 0.1.2
         
-          - ``easy_install JayDeBeApi`` should really work
+        - ``easy_install JayDeBeApi`` should really work
         
         - 0.1.1
         
-          - Fixed bug #688290 "NULL values with converters error on fetch."
-          - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
+        - Fixed bug #688290 "NULL values with converters error on fetch."
+        - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
         
         - 0.1
         
-          - Initial release
+        - Initial release
         
         To do
         =====
         
         - Extract Java calls to seperate Java methods to increase performance.
         - Check if https://code.launchpad.net/dbapi-compliance can help making
-          JayDeBeApi more DB-API complient.
+        JayDeBeApi more DB-API complient.
         - Test it on different databases and provide a flexible db specific
-          pluign mechanism.
+        pluign mechanism.
         - SQLAlchemy modules (seperate project)
         
         .. _DB-API: http://www.python.org/dev/peps/pep-0249/

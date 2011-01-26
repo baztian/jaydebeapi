@@ -1,6 +1,6 @@
-=====================================================================
+=================================================================
  JayDeBeApi - bridge from JDBC database drivers to Python DB-API
-=====================================================================
+=================================================================
 
 The JayDeBeApi module allows you to connect from Python code to
 databases using Java `JDBC
@@ -10,10 +10,6 @@ Python DB-API_ v2.0 to that database.
 It works on ordinary Python (cPython) using the JPype_ Java
 integration or on `Jython <http://www.jython.org/>`_ to make use of
 the Java JDBC driver.
-
-It has been tested with `Hypersonic SQL (HSQLDB)
-<http://hsqldb.org/>`_ and `IBM DB2
-<http://www.ibm.com/software/data/db2/>`_ for z/OS.
 
 In contrast to zxJDBC from the Jython project JayDeBeApi let's you
 access a database with Jython AND Python with only minor code
@@ -88,6 +84,7 @@ in memory database on my Ubuntu machine I'm starting Python by running ::
 
 Now I have to configure JPype
 
+>>> import jpype
 >>> jar = '/path/to/my/driver/hsqldb.jar'
 >>> args='-Djava.class.path=%s' % jar
 >>> jpype.startJVM(jvm_path, args)
@@ -97,6 +94,19 @@ or in Jython I have to
 >>> jar = '/path/to/my/driver/hsqldb.jar'
 >>> import sys
 >>> sys.path.append(jar)
+
+Supported databases
+===================
+
+In theory every database with a suitable JDBC driver should work. It
+is known to work with the following databases:
+
+* `SQLite 3 <http://www.sqlite.org/>`_ using `SqliteJDBC
+  <http://www.zentus.com/sqlitejdbc/>`_ v056
+* `Hypersonic SQL (HSQLDB) <http://hsqldb.org/>`_ 1.8.1.3
+* `IBM DB2 <http://www.ibm.com/software/data/db2/>`_ for z/OS using
+  JDBC type 4 drivers.
+
 
 Contributing
 ============
@@ -116,18 +126,27 @@ distribution for details.
 Changelog
 =========
 
+- trunk
+
+  - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
+    instead of ``curs.execute('foo ?', bar, baz)``.
+
+  - Free resources after ``executemany`` call.
+
+  - Improved type handling.
+
 - 0.1.2
 
-  - ``easy_install JayDeBeApi`` should really work
+  - ``easy_install JayDeBeApi`` should really work.
 
 - 0.1.1
 
-  - Fixed bug #688290 "NULL values with converters error on fetch."
-  - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
+  - Fixed bug #688290 "NULL values with converters error on fetch".
+  - Fixed bug #684909 "Selecting ROWIDs errors out on fetch".
 
 - 0.1
 
-  - Initial release
+  - Initial release.
 
 To do
 =====

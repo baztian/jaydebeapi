@@ -233,14 +233,20 @@ class Cursor(object):
         self._meta = None
         self._description = None
 
-    def _set_stmt_parms(self, prep_stmt, *parameters):
+    # TODO: this is a possible way to close the open result sets
+    # but I'm not sure when __del__ will be called
+    #__del__ = _close_last
+        
+    def _set_stmt_parms(self, prep_stmt, parameters):
         for i in range(len(parameters)):
             prep_stmt.setObject(i + 1, parameters[i])
 
-    def execute(self, operation, *parameters):
+    def execute(self, operation, parameters=None):
+        if not parameters:
+            parameters = ()
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
-        self._set_stmt_parms(self._prep, *parameters)
+        self._set_stmt_parms(self._prep, parameters)
         is_rs = self._prep.execute()
         self.update_count = self._prep.getUpdateCount()
         if is_rs:
@@ -252,11 +258,12 @@ class Cursor(object):
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
         for parameters in seq_of_parameters:
-            self._set_stmt_parms(self._prep, *parameters)
+            self._set_stmt_parms(self._prep, parameters)
             self._prep.addBatch()
         update_counts = self._prep.executeBatch()
         # self._prep.getWarnings() ???
         self.rowcount = sum(update_counts)
+        self._close_last()
 
     def fetchone(self):
         #raise if not rs
@@ -276,6 +283,7 @@ class Cursor(object):
     def fetchmany(self, size=None):
         if size is None:
             size = self.arraysize
+        # TODO: handle SQLException if not supported by db
         self._rs.setFetchSize(size)
         rows = []
         row = None
@@ -287,6 +295,7 @@ class Cursor(object):
                 rows.append(row)
         # reset fetch size
         if row:
+            # TODO: handle SQLException if not supported by db
             self._rs.setFetchSize(0)
         return rows
 
@@ -311,17 +320,20 @@ class Cursor(object):
         pass
 
 def to_datetime(java_val):
-#    d=datetime.datetime.strptime(timestmp.toString()[:-7], "%Y-%m-%d %H:%M:%S")
-#    return d.replace(microsecond=int(str(timestmp.getNanos())[:6]))
-    return java_val.toString()
+    #d=datetime.datetime.strptime(str(java_val)[:-7], "%Y-%m-%d %H:%M:%S")
+    #return d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+    return str(java_val)
 
 def to_date(java_val):
-#    d=datetime.datetime.strptime(timestmp.toString()[:-7], "%Y-%m-%d %H:%M:%S")
-#    return d.replace(microsecond=int(str(timestmp.getNanos())[:6]))
-    return java_val.toString()
+    #d=datetime.datetime.strptime(str(java_val)[:-7], "%Y-%m-%d %H:%M:%S")
+    #return d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+    return str(java_val)
 
 def to_float(java_val):
     return java_val.doubleValue()
+
+def to_int(java_val):
+    return java_val.intValue()
 
 def _init_converters(types_map):
     """Prepares the converters for conversion of java types to python
@@ -345,4 +357,5 @@ _DEFAULT_CONVERTERS = {
     'DATE': to_date,
     'DECIMAL': to_float,
     'NUMERIC': to_float,
+    'INTEGER': to_int,
 }
