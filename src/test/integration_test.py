@@ -73,13 +73,14 @@ class IntegrationTest(TestCase):
         msg = "Warinng: Your are not running the tests against JayDeBeApi."
         print >> sys.stderr, msg
         import sqlite3
-        return sqlite3.connect(':memory:')
+        return sqlite3, sqlite3.connect(':memory:')
 
     def connect(self):
         jar_names = [ 'sqlitejdbc-v056.jar', 'hsqldb.jar', 'sqlite.jar' ]
         jars = [ path.join(jar_dir, i) for i in jar_names ]
         if is_jython():
             sys.path.extend(jars)
+            # print "CLASSPATH=%s" % path.pathsep.join(jars)
         else:
             self.setup_jpype(jars, [jar_dir])
         # http://www.zentus.com/sqlitejdbc/
@@ -96,10 +97,10 @@ class IntegrationTest(TestCase):
         # crap as it returns decimal values as VARCHAR type
         # conn = jaydebeapi.connect('SQLite.JDBCDriver',
         #                           'jdbc:sqlite:/:memory:')
-        return conn
+        return jaydebeapi, conn
 
     def setUp(self):
-        self.conn = self.connect() 
+        (self.dbapi, self.conn) = self.connect() 
         self.sql_file(create_sql)
         self.sql_file(insert_sql)
 
@@ -116,20 +117,23 @@ class IntegrationTest(TestCase):
 
     def test_execute_and_fetch(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT")
+        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                       "from ACCOUNT")
         result = cursor.fetchall()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
          (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)] == result
 
     def test_execute_and_fetch_parameter(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
+        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                       "from ACCOUNT where ACCOUNT_NO = ?", (18,))
         result = cursor.fetchall()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
 
     def test_execute_and_fetchone(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT order by ACCOUNT_NO")
+        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                       "from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchone()
         assert (u'2009-09-10 14:15:22.123456', 18, 12.4, None) == result
         cursor.close()
@@ -154,17 +158,19 @@ class IntegrationTest(TestCase):
 
     def test_execute_and_fetchmany(self):
         cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT order by ACCOUNT_NO")
+        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                       "from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchmany()
         assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
         # TODO: find out why this cursor has to be closed in order to
-        # let this test work with sqlite
-#        cursor.close()
+        # let this test work with sqlite if __del__ is not overridden
+        # in cursor
+        # cursor.close()
 
     def test_executemany(self):
         cursor = self.conn.cursor()
-        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE)" \
-               " values (?, ?, ?)"
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
+               "values (?, ?, ?)"
         parms = (
             ( '2009-09-11 14:15:22.123450', 20, 13.1 ),
             ( '2009-09-11 14:15:22.123451', 21, 13.2 ),
@@ -172,3 +178,46 @@ class IntegrationTest(TestCase):
             )
         cursor.executemany(stmt, parms)
         assert cursor.rowcount == 3
+
+    def test_execute_types(self):
+        cursor = self.conn.cursor()
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
+               "BLOCKING, DBL_COL, OPENED_AT, VALID, PRODUCT_NAME) " \
+               "values (?, ?, ?, ?, ?, ?, ?, ?)"
+        d = self.dbapi
+        account_id = d.Timestamp(2010, 01, 26, 14, 31, 59)
+        account_no = 20
+        balance = 1.2
+        blocking = 10.0
+        dbl_col = 3.5
+        opened_at = d.Date(2008, 02, 27)
+        valid = 1
+        product_name = u'Savings account'
+        parms = (account_id, account_no, balance, blocking, dbl_col,
+                 opened_at, valid, product_name)
+        cursor.execute(stmt, parms)
+        stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING, " \
+               "DBL_COL, OPENED_AT, VALID, PRODUCT_NAME " \
+               "from ACCOUNT where ACCOUNT_NO = ?"
+        parms = (20, )
+        cursor.execute(stmt, parms)
+        result = cursor.fetchone()
+        cursor.close()
+        exp = ( '2010-01-26 14:31:59', account_no, balance, blocking,
+                 dbl_col, '2008-02-27', valid, product_name )
+        assert exp == result
+
+    def test_execute_type_blob(self):
+        cursor = self.conn.cursor()
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
+               "STUFF) values (?, ?, ?, ?)"
+        stuff = self.dbapi.Binary('abcdef')
+        parms = ('2009-09-11 14:15:22.123450', 20, 13.1, stuff)
+        cursor.execute(stmt, parms)
+        stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
+        parms = (20, )
+        cursor.execute(stmt, parms)
+        result = cursor.fetchone()
+        cursor.close()
+        value = result[0]
+        assert 'abcdef' == value

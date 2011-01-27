@@ -133,7 +133,7 @@ Changelog
 
   - Free resources after ``executemany`` call.
 
-  - Improved type handling.
+  - Improved type handling. Initial support for BLOB columns.
 
 - 0.1.2
 
