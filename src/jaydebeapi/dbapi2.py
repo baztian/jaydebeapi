@@ -193,10 +193,10 @@ class Connection(object):
         self.jconn.close()
 
     def commit(self):
-        return self.jconn.commit()
+        self.jconn.commit()
 
     def rollback(self):
-        return self.jconn.rollback()
+        self.jconn.rollback()
 
     def cursor(self):
         return Cursor(self, self._converters)
