@@ -44,7 +44,7 @@ Build a new release
 
 7. Tag for the new version. ::
 
-    $ bzr tag jaydebeapi-0.1.2
+    $ bzr tag jaydebeapi-PUT-VERSION-HERE
 
 8. Send changes to launchpad. ::
 
