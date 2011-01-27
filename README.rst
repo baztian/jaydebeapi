@@ -126,10 +126,15 @@ is known to work with the following databases:
 |<http://www.ibm.com/software/data/db2/>`_|                                                |               |but seems to work     |
 |for z/OS                                 |                                                |               |without problems.     |
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
-|Oracle 11g                               |Oracle Thin Driver                              |Medium         |Not thooughly         |
+|Oracle 11g                               |Oracle Thin Driver                              |Medium         |Not thoroughly        |
 |                                         |                                                |               |testst. No support for|
 |                                         |                                                |               |rading of timestamps  |
 |                                         |                                                |               |yet.                  |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|Other databases                          |Other JDBC drivers                              |Unkown         |Please test yourself  |
+|                                         |                                                |               |and report the        |
+|                                         |                                                |               |results.              |
+|                                         |                                                |               |                      |
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
 
 Contributing
