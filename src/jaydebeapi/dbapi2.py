@@ -178,15 +178,16 @@ def TimestampFromTicks(ticks):
 # DB-API 2.0 Module Interface connect constructor
 def connect(jclassname, *args):
     jconn = _jdbc_connect(jclassname, *args)
-    return Connection(jconn)
+    return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
 class Connection(object):
 
     jconn = None
 
-    def __init__(self, jconn):
+    def __init__(self, jconn, converters):
         self.jconn = jconn
+        self._converters = converters
 
     def close(self):
         self.jconn.close()
@@ -198,7 +199,7 @@ class Connection(object):
         return self.jconn.rollback()
 
     def cursor(self):
-        return Cursor(self)
+        return Cursor(self, self._converters)
 
 # DB-API 2.0 Cursor Object
 class Cursor(object):
@@ -209,8 +210,9 @@ class Cursor(object):
     _rs = None
     _description = None
 
-    def __init__(self, connection):
+    def __init__(self, connection, converters):
         self._connection = connection
+        self._converters = converters
 
     @property
     def description(self):
@@ -295,7 +297,7 @@ class Cursor(object):
             # which can't be converted to string easyly
             v = self._rs.getObject(col)
             if v:
-                converter = _converters.get(sqltype)
+                converter = self._converters.get(sqltype)
                 if converter:
                     v = converter(v)
             row.append(v)
