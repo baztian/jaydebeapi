@@ -6,7 +6,7 @@ create table Account (
 "DBL_COL" DOUBLE,
 "OPENED_AT" DATE,
 "VALID" BOOLEAN,
-"PRODUCT_NAME" VARCHAR,
+"PRODUCT_NAME" VARCHAR(50),
 "STUFF" BLOB,
 primary key ("ACCOUNT_ID")
 );
