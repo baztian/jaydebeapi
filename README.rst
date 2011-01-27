@@ -150,7 +150,7 @@ distribution for details.
 Changelog
 =========
 
-- trunk
+- 0.1.3
 
   - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
     instead of ``curs.execute('foo ?', bar, baz)``.
