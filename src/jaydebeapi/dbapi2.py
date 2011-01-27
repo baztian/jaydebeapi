@@ -25,6 +25,8 @@ import sys
 
 _jdbc_connect = None
 
+_java_array_byte = None
+
 def _jdbc_connect_jython(jclassname, *args):
     if _converters is None:
         from java.sql import Types
@@ -37,14 +39,17 @@ def _jdbc_connect_jython(jclassname, *args):
         _init_converters(types_map)
     # register driver for DriverManager
     __import__(jclassname)
+    global _java_array_byte
+    if _java_array_byte is None:
+        import jarray
+        def _java_array_byte(data):
+            return jarray.array(data, 'b')
     from java.sql import DriverManager
     return DriverManager.getConnection(*args)
 
 def _prepare_jython():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jython
-    # TODO: find solution for jython
-    # Binary = buffer
 
 def _jdbc_connect_jpype(jclassname, *args):
     import jpype
@@ -58,6 +63,10 @@ def _jdbc_connect_jpype(jclassname, *args):
         for i in types.__javaclass__.getClassFields():
             types_map[i.getName()] = i.getStaticAttribute()
         _init_converters(types_map)
+    global _java_array_byte
+    if _java_array_byte is None:
+        def _java_array_byte(data):
+            return jpype.JArray(jpype.JByte, 1)(data)
     # register driver for DriverManager
     jpype.JClass(jclassname)
     return jpype.java.sql.DriverManager.getConnection(*args)
@@ -65,9 +74,6 @@ def _jdbc_connect_jpype(jclassname, *args):
 def _prepare_jpype():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jpype
-    # TODO: doesn't work for Jython
-#    global Binary
-#    Binary = buffer
 
 if sys.platform.lower().startswith('java'):
     _prepare_jython()
@@ -143,11 +149,22 @@ class NotSupportedError(DatabaseError):
     pass
 
 # DB-API 2.0 Type Objects and Constructors
-Date = datetime.date
 
-Time = datetime.time
+def _java_sql_blob(data):
+    return _java_array_byte(data)
 
-Timestamp = datetime.datetime
+Binary = _java_sql_blob
+
+def _str_func(func):
+    def to_str(*parms):
+        return str(func(*parms))
+    return to_str
+
+Date = _str_func(datetime.date)
+
+Time = _str_func(datetime.time)
+
+Timestamp = _str_func(datetime.datetime)
 
 def DateFromTicks(ticks):
     return apply(Date, time.localtime(ticks)[:3])
@@ -235,10 +252,11 @@ class Cursor(object):
 
     # TODO: this is a possible way to close the open result sets
     # but I'm not sure when __del__ will be called
-    #__del__ = _close_last
-        
+    __del__ = _close_last
+
     def _set_stmt_parms(self, prep_stmt, parameters):
         for i in range(len(parameters)):
+            # print (i, parameters[i], type(parameters[i]))
             prep_stmt.setObject(i + 1, parameters[i])
 
     def execute(self, operation, parameters=None):
@@ -272,6 +290,7 @@ class Cursor(object):
         row = []
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
+            # print sqltype
             v = self._rs.getObject(col)
             if v:
                 converter = _converters.get(sqltype)
@@ -319,21 +338,31 @@ class Cursor(object):
     def setoutputsize(self, size, column):
         pass
 
-def to_datetime(java_val):
-    #d=datetime.datetime.strptime(str(java_val)[:-7], "%Y-%m-%d %H:%M:%S")
-    #return d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+def _to_datetime(java_val):
+    d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
+    if not isinstance(java_val, basestring):
+        d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+    return str(d)
+    # return str(java_val)
+
+def _to_date(java_val):
+    d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
+    return d.strftime("%Y-%m-%d")
+    # return str(java_val)
+
+def _to_string(java_val):
     return str(java_val)
 
-def to_date(java_val):
-    #d=datetime.datetime.strptime(str(java_val)[:-7], "%Y-%m-%d %H:%M:%S")
-    #return d.replace(microsecond=int(str(java_val.getNanos())[:6]))
-    return str(java_val)
+def _java_to_py(java_method):
+    def to_py(java_val):
+        if isinstance(java_val, (basestring, int, long, float, bool)):
+            return java_val
+        return getattr(java_val, java_method)()
+    return to_py
 
-def to_float(java_val):
-    return java_val.doubleValue()
+_to_double = _java_to_py('doubleValue')
 
-def to_int(java_val):
-    return java_val.intValue()
+_to_int = _java_to_py('intValue')
 
 def _init_converters(types_map):
     """Prepares the converters for conversion of java types to python
@@ -353,9 +382,14 @@ _DEFAULT_CONVERTERS = {
     # see
     # http://download.oracle.com/javase/1.4.2/docs/api/java/sql/Types.html
     # for possible keys
-    'TIMESTAMP': to_datetime,
-    'DATE': to_date,
-    'DECIMAL': to_float,
-    'NUMERIC': to_float,
-    'INTEGER': to_int,
+    'TIMESTAMP': _to_datetime,
+    'DATE': _to_date,
+    'BINARY': _to_string,
+    'DECIMAL': _to_double,
+    'NUMERIC': _to_double,
+    'DOUBLE': _to_double,
+    'FLOAT': _to_double,
+    'INTEGER': _to_int,
+    'SMALLINT': _to_int,
+    'BOOLEAN': _java_to_py('booleanValue'),
 }

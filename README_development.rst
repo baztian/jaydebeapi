@@ -17,7 +17,8 @@ Build a new release
 
 3. Assert the right connect method is configured for tests.
 
-4. Run test suite. ::
+4. Run test suite. Once for cPython, once for Jython and ideally
+   against all accessible databases. ::
 
     $ nosetests
 

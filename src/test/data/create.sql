@@ -3,6 +3,11 @@ create table Account (
 "ACCOUNT_NO" INTEGER not null,
 "BALANCE" DECIMAL default 0.0 not null,
 "BLOCKING" DECIMAL,
+"DBL_COL" DOUBLE,
+"OPENED_AT" DATE,
+"VALID" BOOLEAN,
+"PRODUCT_NAME" VARCHAR,
+"STUFF" BLOB,
 primary key ("ACCOUNT_ID")
 );
 
