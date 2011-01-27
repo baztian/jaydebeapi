@@ -1,14 +1,14 @@
 Metadata-Version: 1.0
 Name: JayDeBeApi
-Version: 0.1.2
+Version: 0.1.3
 Summary: A bridge from JDBC database drivers to Python DB-API.
 Home-page: https://launchpad.net/jaydebeapi
 Author: Bastian Bowe
 Author-email: bastian.bowe@gmail.com
 License: GNU LGPL
-Description: =====================================================================
-        JayDeBeApi - bridge from JDBC database drivers to Python DB-API
-        =====================================================================
+Description: =================================================================
+         JayDeBeApi - bridge from JDBC database drivers to Python DB-API
+        =================================================================
         
         The JayDeBeApi module allows you to connect from Python code to
         databases using Java `JDBC
@@ -33,7 +33,7 @@ Description: ===================================================================
         You can get and install JayDeBeApi with `easy_install
         <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ ::
         
-        $ easy_install JayDeBeApi
+            $ easy_install JayDeBeApi
         
         If you want to install JayDeBeApi in Jython make sure to have
         EasyInstall available for it.
@@ -41,15 +41,15 @@ Description: ===================================================================
         Or you can get a copy of the source branch using `bzr
         <http://bazaar.canonical.com/>`_ by running ::
         
-        $ bzr branch lp:jaydebeapi
+            $ bzr branch lp:jaydebeapi
         
         and install it with ::
         
-        $ python setup.py install
+            $ python setup.py install
         
         or if you are using Jython use ::
         
-        $ jython setup.py install
+            $ jython setup.py install
         
         It has been tested with Jython 2.5.2.
         
@@ -88,13 +88,14 @@ Description: ===================================================================
         access the database driver's jar files. If I want to connect to a HSQL
         in memory database on my Ubuntu machine I'm starting Python by running ::
         
-        $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
+            $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
         
         Now I have to configure JPype
         
         >>> import jpype
-        >>> jar = '/path/to/my/driver/hsqldb.jar'
+        >>> jar = r'/path/to/my/driver/hsqldb.jar'
         >>> args='-Djava.class.path=%s' % jar
+        >>> jvm_path = jpype.getDefaultJVMPath()
         >>> jpype.startJVM(jvm_path, args)
         
         or in Jython I have to
@@ -109,12 +110,35 @@ Description: ===================================================================
         In theory every database with a suitable JDBC driver should work. It
         is known to work with the following databases:
         
-        * `SQLite 3 <http://www.sqlite.org/>`_ using `SqliteJDBC
-        <http://www.zentus.com/sqlitejdbc/>`_ v056
-        * `Hypersonic SQL (HSQLDB) <http://hsqldb.org/>`_ 1.8.1.3
-        * `IBM DB2 <http://www.ibm.com/software/data/db2/>`_ for z/OS using
-        JDBC type 4 drivers.
-        
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |Database                                 |JDBC driver                                     |Supported      |Remarks               |
+        +=========================================+================================================+===============+======================+
+        |`SQLite                                  |`SqliteJDBC                                     |Good           |Can't interpret       |
+        |<http://www.sqlite.org/>`_               |<http://www.zentus.com/sqlitejdbc/>`_ v056      |               |selected BLOBs        |
+        |3                                        |                                                |               |correctly.            |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |                                         |`Sqlite Java Wrapper                            |Medium         |Weird type handling.  |
+        |                                         |<http://www.ch-werner.de/javasqlite/>`_         |               |                      |
+        |                                         |javasqlite-20110106-win32                       |               |                      |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |`Hypersonic SQL (HSQLDB)                 |Builtin                                         |Very Good      |No BLOB support       |
+        |<http://hsqldb.org/>`_ 1.8.1.3           |                                                |               |by database.          |
+        |                                         |                                                |               |                      |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |`Hypersonic SQL (HSQLDB)                 |Builtin                                         |Medium         |Weird decimal         |
+        |<http://hsqldb.org/>`_ 2                 |                                                |               |type                  |
+        |                                         |                                                |               |conversions. No       |
+        |                                         |                                                |               |BLOB support.         |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |`IBM DB2                                 |JDBC type 4 drivers from IBM (``db2jcc.jar``)   |Medium.        |Not thoroughly tested |
+        |<http://www.ibm.com/software/data/db2/>`_|                                                |               |but seems to work     |
+        |for z/OS                                 |                                                |               |without problems.     |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
+        |Oracle 11g                               |Oracle Thin Driver                              |Medium         |Not thooughly         |
+        |                                         |                                                |               |testst. No support for|
+        |                                         |                                                |               |rading of timestamps  |
+        |                                         |                                                |               |yet.                  |
+        +-----------------------------------------+------------------------------------------------+---------------+----------------------+
         
         Contributing
         ============
@@ -134,32 +158,36 @@ Description: ===================================================================
         Changelog
         =========
         
-        - trunk
+        - 0.1.3
         
-        - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
-        instead of ``curs.execute('foo ?', bar, baz)``.
+          - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
+            instead of ``curs.execute('foo ?', bar, baz)``.
+        
+          - Free resources after ``executemany`` call.
+        
+          - Improved type handling. Initial support for BLOB columns.
         
         - 0.1.2
         
-        - ``easy_install JayDeBeApi`` should really work
+          - ``easy_install JayDeBeApi`` should really work.
         
         - 0.1.1
         
-        - Fixed bug #688290 "NULL values with converters error on fetch."
-        - Fixed bug #684909 "Selecting ROWIDs errors out on fetch."
+          - Fixed bug #688290 "NULL values with converters error on fetch".
+          - Fixed bug #684909 "Selecting ROWIDs errors out on fetch".
         
         - 0.1
         
-        - Initial release
+          - Initial release.
         
         To do
         =====
         
         - Extract Java calls to seperate Java methods to increase performance.
         - Check if https://code.launchpad.net/dbapi-compliance can help making
-        JayDeBeApi more DB-API complient.
+          JayDeBeApi more DB-API complient.
         - Test it on different databases and provide a flexible db specific
-        pluign mechanism.
+          pluign mechanism.
         - SQLAlchemy modules (seperate project)
         
         .. _DB-API: http://www.python.org/dev/peps/pep-0249/

@@ -22,13 +22,21 @@ Build a new release
 
     $ nosetests
 
-3. Add a changelog entry to ``README.rst``.
+4. Add a changelog entry to ``README.rst``.
 
-4. Increase version in ``setup.py``.
+5. Increase version in ``setup.py``.
 
-5. Run setuptools to ensure everything is working as expected. ::
+6. Run setuptools to ensure everything is working as expected. ::
 
-    $ python setup.py sdist
+    $ python setup.py sdist --formats=gztar
+
+7. Check the file createt by sdist for unwanted or missing files.
+
+8. Install the sdist in a fresh virtualenv. ::
+
+    $ virtualenv tmp
+    $ . tmp/bin/activate
+    $ easy_install path_to_build_folder/jaydebeapi-0.x.tar.gz
 
 6. Commit your changes. ::
 
