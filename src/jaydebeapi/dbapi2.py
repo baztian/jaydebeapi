@@ -352,9 +352,6 @@ def _to_date(java_val):
     return d.strftime("%Y-%m-%d")
     # return str(java_val)
 
-def _to_string(java_val):
-    return str(java_val)
-
 def _java_to_py(java_method):
     def to_py(java_val):
         if isinstance(java_val, (basestring, int, long, float, bool)):
@@ -386,7 +383,7 @@ _DEFAULT_CONVERTERS = {
     # for possible keys
     'TIMESTAMP': _to_datetime,
     'DATE': _to_date,
-    'BINARY': _to_string,
+    'BINARY': str,
     'DECIMAL': _to_double,
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
