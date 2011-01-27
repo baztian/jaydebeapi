@@ -91,12 +91,15 @@ class IntegrationTest(TestCase):
         #                           'jdbc:hsqldb:mem', 'SA', '')
         # conn = jaydebeapi.connect('com.ibm.db2.jcc.DB2Driver',
         #                           'jdbc:db2://4.100.73.81:50000/db2t',
-        #                           getpass.getuser(),
-        #                           getpass.getpass())
+        #                           user, passwd)
         # driver from http://www.ch-werner.de/javasqlite/ seems to be
         # crap as it returns decimal values as VARCHAR type
         # conn = jaydebeapi.connect('SQLite.JDBCDriver',
         #                           'jdbc:sqlite:/:memory:')
+        # Oracle Thin Driver
+        # conn = jaydebeapi.connect('oracle.jdbc.OracleDriver',
+        #                           'jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
+        #                           user, passwd)
         return jaydebeapi, conn
 
     def setUp(self):

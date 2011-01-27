@@ -85,8 +85,9 @@ in memory database on my Ubuntu machine I'm starting Python by running ::
 Now I have to configure JPype
 
 >>> import jpype
->>> jar = '/path/to/my/driver/hsqldb.jar'
+>>> jar = r'/path/to/my/driver/hsqldb.jar'
 >>> args='-Djava.class.path=%s' % jar
+>>> jvm_path = jpype.getDefaultJVMPath()
 >>> jpype.startJVM(jvm_path, args)
 
 or in Jython I have to
@@ -101,12 +102,35 @@ Supported databases
 In theory every database with a suitable JDBC driver should work. It
 is known to work with the following databases:
 
-* `SQLite 3 <http://www.sqlite.org/>`_ using `SqliteJDBC
-  <http://www.zentus.com/sqlitejdbc/>`_ v056
-* `Hypersonic SQL (HSQLDB) <http://hsqldb.org/>`_ 1.8.1.3
-* `IBM DB2 <http://www.ibm.com/software/data/db2/>`_ for z/OS using
-  JDBC type 4 drivers.
-
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|Database                                 |JDBC driver                                     |Supported      |Remarks               |
++=========================================+================================================+===============+======================+
+|`SQLite                                  |`SqliteJDBC                                     |Good           |Can't interpret       |
+|<http://www.sqlite.org/>`_               |<http://www.zentus.com/sqlitejdbc/>`_ v056      |               |selected BLOBs        |
+|3                                        |                                                |               |correctly.            |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|                                         |`Sqlite Java Wrapper                            |Medium         |Weird type handling.  |
+|                                         |<http://www.ch-werner.de/javasqlite/>`_         |               |                      |
+|                                         |javasqlite-20110106-win32                       |               |                      |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|`Hypersonic SQL (HSQLDB)                 |Builtin                                         |Very Good      |No BLOB support       |
+|<http://hsqldb.org/>`_ 1.8.1.3           |                                                |               |by database.          |
+|                                         |                                                |               |                      |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|`Hypersonic SQL (HSQLDB)                 |Builtin                                         |Medium         |Weird decimal         |
+|<http://hsqldb.org/>`_ 2                 |                                                |               |type                  |
+|                                         |                                                |               |conversions. No       |
+|                                         |                                                |               |BLOB support.         |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|`IBM DB2                                 |JDBC type 4 drivers from IBM (``db2jcc.jar``)   |Medium.        |Not thoroughly tested |
+|<http://www.ibm.com/software/data/db2/>`_|                                                |               |but seems to work     |
+|for z/OS                                 |                                                |               |without problems.     |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|Oracle 11g                               |Oracle Thin Driver                              |Medium         |Not thooughly         |
+|                                         |                                                |               |testst. No support for|
+|                                         |                                                |               |rading of timestamps  |
+|                                         |                                                |               |yet.                  |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
 
 Contributing
 ============
