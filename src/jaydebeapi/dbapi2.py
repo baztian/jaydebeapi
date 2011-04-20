@@ -268,10 +268,12 @@ class Cursor(object):
         self._prep = self._connection.jconn.prepareStatement(operation)
         self._set_stmt_parms(self._prep, parameters)
         is_rs = self._prep.execute()
-        self.update_count = self._prep.getUpdateCount()
         if is_rs:
             self._rs = self._prep.getResultSet()
             self._meta = self._rs.getMetaData()
+            self.rowcount = -1
+        else:
+            self.rowcount = self._prep.getUpdateCount()
         # self._prep.getWarnings() ???
 
     def executemany(self, operation, seq_of_parameters):

@@ -224,3 +224,19 @@ class IntegrationTest(TestCase):
         cursor.close()
         value = result[0]
         assert 'abcdef' == value
+
+    def test_execute_different_rowcounts(self):
+        cursor = self.conn.cursor()
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
+               "values (?, ?, ?)"
+        parms = (
+            ( '2009-09-11 14:15:22.123450', 20, 13.1 ),
+            ( '2009-09-11 14:15:22.123452', 22, 13.3 ),
+            )
+        cursor.executemany(stmt, parms)
+        assert cursor.rowcount == 2
+        parms = ( '2009-09-11 14:15:22.123451', 21, 13.2 )
+        cursor.execute(stmt, parms)
+        assert cursor.rowcount == 1
+        cursor.execute("select * from ACCOUNT")
+        assert cursor.rowcount == -1
