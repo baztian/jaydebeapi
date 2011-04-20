@@ -155,6 +155,10 @@ distribution for details.
 Changelog
 =========
 
+- 0.1.4
+
+  - Set ``.rowcount`` properly.
+
 - 0.1.3
 
   - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
