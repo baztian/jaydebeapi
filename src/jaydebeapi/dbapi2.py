@@ -239,16 +239,17 @@ class Cursor(object):
 
     def close(self):
         self._close_last()
-        self.connection = None
+        self._connection = None
 
     def _close_last(self):
         """Close the resultset and reset collected meta data.
         """
         if self._rs:
             self._rs.close()
+        self._rs = None
         if self._prep:
             self._prep.close()
-        self._rs = None
+        self._prep = None
         self._meta = None
         self._description = None
 
