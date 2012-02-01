@@ -9,3 +9,4 @@
 **/*.bak
 **/mem.*
 **/*.log
+JayDeBeApi.egg-info
