@@ -141,8 +141,34 @@ class IntegrationTest(TestCase):
         assert (u'2009-09-10 14:15:22.123456', 18, 12.4, None) == result
         cursor.close()
 
+    def test_execute_and_fetchone_without_execute_result(self):
+        """Expect an error if fetchone() is called after execute did
+        not produce any result set.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("delete from ACCOUNT")
+        try:
+            cursor.fetchone()
+            self.fail("Exception expected")
+        except jaydebeapi.Error:
+            pass
+        assert None == cursor.description
+
+    def test_execute_and_fetchmany_without_execute_result(self):
+        """Expect an error if fetchmany() is called after execute did
+        not produce any result set.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("delete from ACCOUNT")
+        try:
+            cursor.fetchmany()
+            self.fail("Exception expected")
+        except jaydebeapi.Error:
+            pass
+        assert None == cursor.description
+
     def test_execute_reset_description_without_execute_result(self):
-        """Excpect the descriptions property being reset when no query
+        """Expect the descriptions property being reset when no query
         has been made via execute method.
         """
         cursor = self.conn.cursor()

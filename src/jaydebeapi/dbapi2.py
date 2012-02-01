@@ -284,6 +284,7 @@ class Cursor(object):
         self._close_last()
 
     def fetchone(self):
+        self._assert_result_set()
         #raise if not rs
         if not self._rs.next():
             return None
@@ -301,7 +302,13 @@ class Cursor(object):
             row.append(v)
         return tuple(row)
 
+    def _assert_result_set(self):
+        if not self._rs:
+            raise Error('Previous call to .execute*() did not produce' \
+                        ' any result set or no call was issued yet.')
+
     def fetchmany(self, size=None):
+        self._assert_result_set()
         if size is None:
             size = self.arraysize
         # TODO: handle SQLException if not supported by db
