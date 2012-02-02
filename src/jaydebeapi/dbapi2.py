@@ -297,7 +297,7 @@ class Cursor(object):
             sqltype = self._meta.getColumnType(col)
             # print sqltype
             # TODO: Oracle 11 will read a oracle.sql.TIMESTAMP
-            # which can't be converted to string easyly
+            # which can't be converted to string easily
             v = self._rs.getObject(col)
             if v:
                 converter = self._converters.get(sqltype)
