@@ -265,10 +265,15 @@ class Cursor(object):
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
         self._set_stmt_parms(self._prep, parameters)
-        is_rs = self._prep.execute()
+        self._prep.execute()
+        self._rs = self._prep.getResultSet()
         self.update_count = self._prep.getUpdateCount()
-        if is_rs:
-            self._rs = self._prep.getResultSet()
+        if self._rs:
+            # Alternatively we could have evaluated the prepared
+            # statements execute method return value but it doesn't
+            # seem to be implemented correctly for all jdbc driver
+            # implementations. On the other hand this getResultSet()
+            # doesn't work for every driver if there's no ResultSet...
             self._meta = self._rs.getMetaData()
         # self._prep.getWarnings() ???
 
