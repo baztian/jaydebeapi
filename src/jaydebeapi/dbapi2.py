@@ -27,6 +27,8 @@ _jdbc_connect = None
 
 _java_array_byte = None
 
+_SQLException = None
+
 def _jdbc_connect_jython(jclassname, *args):
     if _converters is None:
         from java.sql import Types
@@ -44,6 +46,8 @@ def _jdbc_connect_jython(jclassname, *args):
         import jarray
         def _java_array_byte(data):
             return jarray.array(data, 'b')
+    global _SQLException
+    from java.sql import SQLException as _SQLException
     from java.sql import DriverManager
     return DriverManager.getConnection(*args)
 
@@ -67,6 +71,8 @@ def _jdbc_connect_jpype(jclassname, *args):
     if _java_array_byte is None:
         def _java_array_byte(data):
             return jpype.JArray(jpype.JByte, 1)(data)
+    global _SQLException
+    _SQLException = jpype.JException(jpype.java.sql.SQLException)
     # register driver for DriverManager
     jpype.JClass(jclassname)
     return jpype.java.sql.DriverManager.getConnection(*args)
@@ -216,6 +222,9 @@ class Cursor(object):
     def description(self):
         if self._description:
             return self._description
+        if not (self._meta or self._is_rs()):
+            return None
+        self._assert_meta()
         m = self._meta
         if m:
             count = m.getColumnCount()
@@ -266,15 +275,7 @@ class Cursor(object):
         self._prep = self._connection.jconn.prepareStatement(operation)
         self._set_stmt_parms(self._prep, parameters)
         self._prep.execute()
-        self._rs = self._prep.getResultSet()
         self.update_count = self._prep.getUpdateCount()
-        if self._rs:
-            # Alternatively we could have evaluated the prepared
-            # statements execute method return value but it doesn't
-            # seem to be implemented correctly for all jdbc driver
-            # implementations. On the other hand this getResultSet()
-            # doesn't work for every driver if there's no ResultSet...
-            self._meta = self._rs.getMetaData()
         # self._prep.getWarnings() ???
 
     def executemany(self, operation, seq_of_parameters):
@@ -290,9 +291,9 @@ class Cursor(object):
 
     def fetchone(self):
         self._assert_result_set()
-        #raise if not rs
         if not self._rs.next():
             return None
+        self._assert_meta()
         row = []
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
@@ -307,10 +308,25 @@ class Cursor(object):
             row.append(v)
         return tuple(row)
 
+    def _is_rs(self):
+        if self._rs:
+            return True
+        if not self._prep:
+            return False
+        try:
+            self._rs = self._prep.getResultSet()
+        except _SQLException:
+            return False
+        return self._rs != None
+
     def _assert_result_set(self):
-        if not self._rs:
+        if not (self._rs or self._is_rs()):
             raise Error('Previous call to .execute*() did not produce' \
                         ' any result set or no call was issued yet.')
+
+    def _assert_meta(self):
+        if not self._meta:
+            self._meta = self._rs.getMetaData()
 
     def fetchmany(self, size=None):
         self._assert_result_set()
