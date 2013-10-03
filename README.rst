@@ -43,7 +43,7 @@ or if you are using Jython use ::
 
     $ jython setup.py install
 
-It has been tested with Jython 2.5.2.
+It has been tested with Jython 2.5.3.
 
 If you are using cPython ensure that you have installed JPype_
 properly. It has been tested with JPype 0.5.4.
@@ -56,15 +56,20 @@ the ``connect`` method. This gives you a DB-API_ conform connection to
 the database.
 
 The first argument to ``connect`` is the name of the Java driver
-class. The rest of the arguments are internally passed to the Java
-``DriverManager.getConnection`` method. See the Javadoc of
-``DriverManager`` class for details.
+class. Then you can supply a single argument or a sequence of
+arguments that are internally passed to the Java
+``DriverManager.getConnection`` method. Usually this is the JDBC
+connection URL. See the Javadoc of ``DriverManager`` class for
+details. As the next parameter you can optionally specify the
+jar-Files of the driver if your classpath isn't set up sufficiently
+yet.
 
 Here is an example:
 
 >>> import jaydebeapi
 >>> conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
-...                           'jdbc:hsqldb:mem', 'SA', '')
+...                           ['jdbc:hsqldb:mem:.', 'SA', ''],
+...                           '/path/to/hsqldb.jar',)
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
 ...                '("CUST_ID" INTEGER not null,'
@@ -99,7 +104,7 @@ or in Jython I have to
 Supported databases
 ===================
 
-In theory every database with a suitable JDBC driver should work. It
+In theory *every database with a suitable JDBC driver should work*. It
 is known to work with the following databases:
 
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
@@ -127,14 +132,16 @@ is known to work with the following databases:
 |for z/OS                                 |                                                |               |without problems.     |
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
 |Oracle 11g                               |Oracle Thin Driver                              |Medium         |Not thoroughly        |
-|                                         |                                                |               |testst. No support for|
+|                                         |                                                |               |tests. No support for |
 |                                         |                                                |               |rading of timestamps  |
 |                                         |                                                |               |yet.                  |
++-----------------------------------------+------------------------------------------------+---------------+----------------------+
+|Teradata DB                              |terajdbc4.jar                                   |Medium         |A user reported       |
+|                                         |                                                |               |success.              |
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
 |Other databases                          |Other JDBC drivers                              |Unkown         |Please test yourself  |
 |                                         |                                                |               |and report the        |
 |                                         |                                                |               |results.              |
-|                                         |                                                |               |                      |
 +-----------------------------------------+------------------------------------------------+---------------+----------------------+
 
 Contributing
@@ -156,6 +163,9 @@ Changelog
 =========
 
 - 0.1.4
+
+  - More convenient way to setup Java classpath. *Important note*
+    check the changes to the ``connect`` method and adapt your code.
 
   - Set ``.rowcount`` properly.
 

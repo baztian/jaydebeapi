@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 
-# Copyright 2010 Bastian Bowe
+# Copyright 2010, 2011, 2012, 2013 Bastian Bowe
 #
 # This file is part of JayDeBeApi.
 # JayDeBeApi is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 import datetime
 import exceptions
+import os
 import time
 import re
 import sys
@@ -27,7 +28,7 @@ _jdbc_connect = None
 
 _java_array_byte = None
 
-def _jdbc_connect_jython(jclassname, *args):
+def _jdbc_connect_jython(jclassname, jars, libs, *args):
     if _converters is None:
         from java.sql import Types
         types = Types
@@ -37,24 +38,63 @@ def _jdbc_connect_jython(jclassname, *args):
             if const_re.match(i):
                 types_map[i] = getattr(types, i)
         _init_converters(types_map)
-    # register driver for DriverManager
-    __import__(jclassname)
     global _java_array_byte
     if _java_array_byte is None:
         import jarray
         def _java_array_byte(data):
             return jarray.array(data, 'b')
+    # register driver for DriverManager
+    jpackage = jclassname[:jclassname.rfind('.')]
+    dclassname = jclassname[jclassname.rfind('.') + 1:]
+    # print jpackage
+    # print dclassname
+    # print jpackage
+    from java.lang import Class
+    from java.lang import ClassNotFoundException
+    try:
+        Class.forName(jclassname).newInstance()
+    except ClassNotFoundException:
+        if not jars:
+            raise
+        _jython_set_classpath(jars)
+        Class.forName(jclassname).newInstance()
     from java.sql import DriverManager
     return DriverManager.getConnection(*args)
+
+def _jython_set_classpath(jars):
+    '''
+    import a jar at runtime (needed for JDBC [Class.forName])
+
+    adapted by Bastian Bowe from
+    http://stackoverflow.com/questions/3015059/jython-classpath-sys-path-and-jdbc-drivers
+    '''
+    from java.net import URL, URLClassLoader
+    from java.lang import ClassLoader
+    from java.io import File
+    m = URLClassLoader.getDeclaredMethod("addURL", [URL])
+    m.accessible = 1
+    urls = [File(i).toURL() for i in jars]
+    m.invoke(ClassLoader.getSystemClassLoader(), urls)
 
 def _prepare_jython():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jython
 
-def _jdbc_connect_jpype(jclassname, *args):
+def _jdbc_connect_jpype(jclassname, jars, libs, *args):
     import jpype
     if not jpype.isJVMStarted():
-        jpype.startJVM(jpype.getDefaultJVMPath())
+        args = []
+        if jars:
+            class_path = os.path.pathsep.join(jars)
+            args.append('-Djava.class.path=%s' % class_path)
+        if libs:
+            # path to shared libraries
+            libs_path = os.path.pathsep.join(libs)
+            args.append('-Djava.library.path=%s' % libs_path)
+        # jvm_path = ('/usr/lib/jvm/java-6-openjdk'
+        #             '/jre/lib/i386/client/libjvm.so')
+        jvm_path = jpype.getDefaultJVMPath()
+        jpype.startJVM(jvm_path, *args)
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
     if _converters is None:
@@ -176,8 +216,33 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, *args):
-    jconn = _jdbc_connect(jclassname, *args)
+def connect(jclassname, driver_args, jars=None, libs=None):
+    """Open a connection to a database using a JDBC driver and return
+    a Connection instance.
+
+    jclassname: Full qualified Java class name of the JDBC driver.
+    driver_args: Argument or sequence of arguments to be passed to the
+           Java DriverManager.getConnection method. Usually the
+           database URL. See
+           http://docs.oracle.com/javase/6/docs/api/java/sql/DriverManager.html
+           for more details
+    jars: Jar filename or sequence of filenames for the JDBC driver
+    libs: Dll/so filenames or sequence of dlls/sos used as shared
+          library by the JDBC driver
+    """
+    if isinstance(driver_args, basestring):
+        driver_args = [ driver_args ]
+    if jars:
+        if isinstance(jars, basestring):
+            jars = [ jars ]
+    else:
+        jars = []
+    if libs:
+        if isinstance(libs, basestring):
+            libs = [ libs ]
+    else:
+        libs = []
+    jconn = _jdbc_connect(jclassname, jars, libs, *driver_args)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
