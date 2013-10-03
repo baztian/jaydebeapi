@@ -80,7 +80,7 @@ def _prepare_jython():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jython
 
-def _jdbc_connect_jpype(jclassname, jars, libs, *args):
+def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     import jpype
     if not jpype.isJVMStarted():
         args = []
@@ -109,7 +109,7 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *args):
             return jpype.JArray(jpype.JByte, 1)(data)
     # register driver for DriverManager
     jpype.JClass(jclassname)
-    return jpype.java.sql.DriverManager.getConnection(*args)
+    return jpype.java.sql.DriverManager.getConnection(*driver_args)
 
 def _prepare_jpype():
     global _jdbc_connect
