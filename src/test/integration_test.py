@@ -50,23 +50,6 @@ class IntegrationTest(TestCase):
         for i in stmts:
             cursor.execute(i)
 
-    def setup_jpype(self, jars, libs=None):
-        import jpype
-        if not jpype.isJVMStarted():
-            jvm_path = jpype.getDefaultJVMPath()
-            #jvm_path = ('/usr/lib/jvm/java-6-openjdk'
-            #            '/jre/lib/i386/client/libjvm.so')
-            # path to shared libraries
-            args = []
-            if libs:
-                libs_path = path.pathsep.join(libs)
-                args.append('-Djava.library.path=%s' % libs_path)
-            class_path = path.pathsep.join(jars)
-            args.append('-Djava.class.path=%s' % class_path)
-            jpype.startJVM(jvm_path, *args)
-        if not jpype.isThreadAttachedToJVM():
-            jpype.attachThreadToJVM()
-
     def connect(self):
         # rename the latter connect method to run tests against
         # pysqlite
@@ -76,30 +59,25 @@ class IntegrationTest(TestCase):
         return sqlite3, sqlite3.connect(':memory:')
 
     def connect(self):
-        jar_names = [ 'sqlitejdbc-v056.jar', 'hsqldb.jar', 'sqlite.jar' ]
-        jars = [ path.join(jar_dir, i) for i in jar_names ]
-        if is_jython():
-            sys.path.extend(jars)
-            # print "CLASSPATH=%s" % path.pathsep.join(jars)
-        else:
-            self.setup_jpype(jars, [jar_dir])
         # http://www.zentus.com/sqlitejdbc/
         conn = jaydebeapi.connect('org.sqlite.JDBC',
-                                  'jdbc:sqlite::memory:')
+                                  'jdbc:sqlite::memory:',
+                                  path.join(jar_dir, 'sqlitejdbc-v056.jar'),)
         # http://hsqldb.org/
         # conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
-        #                           'jdbc:hsqldb:mem', 'SA', '')
+        #                           ['jdbc:hsqldb:mem:.', 'SA', ''],
+        #                           'hsqldb.jar')
         # conn = jaydebeapi.connect('com.ibm.db2.jcc.DB2Driver',
-        #                           'jdbc:db2://4.100.73.81:50000/db2t',
-        #                           user, passwd)
+        #                           ['jdbc:db2://4.100.73.81:50000/db2t',
+        #                            user, passwd])
         # driver from http://www.ch-werner.de/javasqlite/ seems to be
         # crap as it returns decimal values as VARCHAR type
         # conn = jaydebeapi.connect('SQLite.JDBCDriver',
-        #                           'jdbc:sqlite:/:memory:')
+        #                           'jdbc:sqlite:/:memory:', 'sqlite.jar')
         # Oracle Thin Driver
         # conn = jaydebeapi.connect('oracle.jdbc.OracleDriver',
-        #                           'jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
-        #                           user, passwd)
+        #                           ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
+        #                            user, passwd])
         return jaydebeapi, conn
 
     def setUp(self):
