@@ -18,9 +18,10 @@
 # <http://www.gnu.org/licenses/>.
 
 from os import path
-from unittest import TestCase
 import jaydebeapi
 import sys
+
+import unittest2 as unittest
 
 this_dir = path.dirname(path.abspath(__file__))
 jar_dir = path.abspath(path.join(this_dir, '..', '..',
@@ -31,7 +32,7 @@ insert_sql = path.join(this_dir, 'data', 'insert.sql')
 def is_jython():
     return sys.platform.lower().startswith('java')
 
-class IntegrationTest(TestCase):
+class IntegrationTest(unittest.TestCase):
 
     def sql_file(self, filename):
         f = open(filename, 'r')
@@ -62,7 +63,7 @@ class IntegrationTest(TestCase):
         # http://www.zentus.com/sqlitejdbc/
         conn = jaydebeapi.connect('org.sqlite.JDBC',
                                   'jdbc:sqlite::memory:',
-                                  path.join(jar_dir, 'sqlitejdbc-v056.jar'),)
+                                  path.join(jar_dir, 'sqlitejdbc-v056.jar'))
         # http://hsqldb.org/
         # conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
         #                           ['jdbc:hsqldb:mem:.', 'SA', ''],
