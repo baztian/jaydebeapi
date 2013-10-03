@@ -10,3 +10,4 @@
 **/mem.*
 **/*.log
 JayDeBeApi.egg-info
+./libs/**/*.class
