@@ -19,7 +19,12 @@ import unittest2
 
 def main():
     suite = unittest2.loader.TestLoader().discover('src/test')
-    unittest2.TextTestRunner(verbosity=2).run(suite)
+    if len(sys.argv) > 1 and '--xml' in sys.argv:
+        import xmlrunner
+        runner = xmlrunner.XMLTestRunner(output='build/test-reports')
+    else:
+        runner = unittest2.TextTestRunner(verbosity=2)
+    runner.run(suite)
 
 if __name__ == '__main__':
     main()
