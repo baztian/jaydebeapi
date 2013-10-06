@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Run unittests in the `tests` directory."""
 
+from optparse import OptionParser
 import os
 import sys
 
@@ -18,8 +19,12 @@ adjust_sys_path('src')
 import unittest2
 
 def main():
+    parser = OptionParser()
+    parser.add_option("-x", "--xml", action="store_true", dest="xml",
+                  help="write test report in xunit file format")
+    (options, args) = parser.parse_args(sys.argv)
     suite = unittest2.loader.TestLoader().discover('src/test')
-    if len(sys.argv) > 1 and '--xml' in sys.argv:
+    if options.xml:
         import xmlrunner
         runner = xmlrunner.XMLTestRunner(output='build/test-reports')
     else:
