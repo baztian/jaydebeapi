@@ -19,6 +19,7 @@
 
 import datetime
 import exceptions
+import glob
 import os
 import time
 import re
@@ -84,9 +85,13 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     import jpype
     if not jpype.isJVMStarted():
         args = []
+        class_path = []
         if jars:
-            class_path = os.path.pathsep.join(jars)
-            args.append('-Djava.class.path=%s' % class_path)
+            class_path.extend(jars)
+        class_path.extend(_get_classpath())
+        if class_path:
+            args.append('-Djava.class.path=%s' %
+                        os.path.pathsep.join(class_path))
         if libs:
             # path to shared libraries
             libs_path = os.path.pathsep.join(libs)
@@ -110,6 +115,25 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     # register driver for DriverManager
     jpype.JClass(jclassname)
     return jpype.java.sql.DriverManager.getConnection(*driver_args)
+
+def _get_classpath():
+    """Extract CLASSPATH from system environment as JPype doesn't seem
+    to respect that variable.
+    """
+    try:
+        orig_cp = os.environ['CLASSPATH']
+    except KeyError:
+        return []
+    expanded_cp = []
+    for i in orig_cp.split(os.path.pathsep):
+        expanded_cp.extend(_jar_glob(i))
+    return expanded_cp
+
+def _jar_glob(item):
+    if item.endswith('*'):
+        return glob.glob('%s.[jJ][aA][rR]' % item)
+    else:
+        return [item]
 
 def _prepare_jpype():
     global _jdbc_connect

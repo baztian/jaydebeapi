@@ -60,9 +60,12 @@ class. Then you can supply a single argument or a sequence of
 arguments that are internally passed to the Java
 ``DriverManager.getConnection`` method. Usually this is the JDBC
 connection URL. See the Javadoc of ``DriverManager`` class for
-details. As the next parameter you can optionally specify the
+details.
+
+As the next parameter to ``connect`` you can optionally specify the
 jar-Files of the driver if your classpath isn't set up sufficiently
-yet.
+yet. The classpath set in ``CLASSPATH`` environment variable will be
+honored. See the documentation of your Java runtime environment.
 
 Here is an example:
 
@@ -81,25 +84,11 @@ Here is an example:
 >>> curs.fetchall()
 [(1, u'John')]
 
-You probably have to configure Jython or JPype to actually be able to
-access the database driver's jar files. If I want to connect to a HSQL
-in memory database on my Ubuntu machine I'm starting Python by running ::
+If you're having trouble getting this work check if your ``JAVA_HOME``
+environmentvariable is set correctly. For example I have to set it on
+my Ubuntu machine like this ::
 
     $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
-
-Now I have to configure JPype
-
->>> import jpype
->>> jar = r'/path/to/my/driver/hsqldb.jar'
->>> args='-Djava.class.path=%s' % jar
->>> jvm_path = jpype.getDefaultJVMPath()
->>> jpype.startJVM(jvm_path, args)
-
-or in Jython I have to
-
->>> jar = '/path/to/my/driver/hsqldb.jar'
->>> import sys
->>> sys.path.append(jar)
 
 Supported databases
 ===================
@@ -168,6 +157,8 @@ Changelog
     check the changes to the ``connect`` method and adapt your code.
 
   - Set ``.rowcount`` properly.
+
+  - Honor ``CLASSPATH`` if used in JPype mode.
 
 - 0.1.3
 

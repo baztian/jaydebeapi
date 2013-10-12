@@ -25,41 +25,10 @@ import threading
 
 import unittest2 as unittest
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-
-def jar(jar_file):
-    return os.path.abspath(os.path.join(this_dir, '..', '..', 'build', 'lib',
-                                        jar_file))
-
-_DRIVERS = {
-    #http://bitbucket.org/xerial/sqlite-jdbc
-    'sqlite_xerial': ( 'org.sqlite.JDBC', 'jdbc:sqlite::memory:',
-                       jar('sqlite-jdbc-3.7.2.jar'), None),
-    # http://hsqldb.org/
-    'hsqldb': ( 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.', 'SA', ''],
-                jar('hsqldb.jar'), None),
-    'db2jcc': ( 'com.ibm.db2.jcc.DB2Driver',
-                ['jdbc:db2://4.100.73.81:50000/db2t', 'user', 'passwd'],
-                jar('jarfile.jar'), None),
-    # driver from http://www.ch-werner.de/javasqlite/ seems to be
-    # crap as it returns decimal values as VARCHAR type
-    'sqlite_werner': ( 'SQLite.JDBCDriver', 'jdbc:sqlite:/:memory:',
-                       jar('sqlite.jar'), None),
-    # Oracle Thin Driver
-    'oracle_thin': ('oracle.jdbc.OracleDriver',
-                    ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
-                     'user', 'passwd'],
-                    jar('jarfile.jar'), None)
-    }
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def is_jython():
     return sys.platform.lower().startswith('java')
-
-def driver_name():
-    try:
-        return os.environ['INTEGRATION_TEST_DRIVER']
-    except KeyError:
-        return 'sqlite_xerial'
 
 class IntegrationTest(unittest.TestCase):
 
@@ -89,27 +58,37 @@ class IntegrationTest(unittest.TestCase):
         return sqlite3, sqlite3.connect(':memory:')
 
     def connect(self):
-        driver = driver_name()
-        driver_class, driver_args, driver_jars, driver_libs = _DRIVERS[driver]
-        conn = jaydebeapi.connect(driver_class, driver_args, driver_jars,
-                                  driver_libs)
+        #http://bitbucket.org/xerial/sqlite-jdbc
+        # sqlite-jdbc-3.7.2.jar
+        driver, driver_args = 'org.sqlite.JDBC', 'jdbc:sqlite::memory:'
+        # http://hsqldb.org/
+        # hsqldb.jar
+        #driver, driver_args = 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.',
+        #                                                'SA', '']
+        # db2jcc
+        # driver, driver_args = 'com.ibm.db2.jcc.DB2Driver', \
+        #    ['jdbc:db2://4.100.73.81:50000/db2t', 'user', 'passwd']
+        # driver from http://www.ch-werner.de/javasqlite/ seems to be
+        # crap as it returns decimal values as VARCHAR type
+        # sqlite.jar
+        # driver, driver_args = 'SQLite.JDBCDriver', 'jdbc:sqlite:/:memory:'
+        # Oracle Thin Driver
+        # driver, driver_args = 'oracle.jdbc.OracleDriver', \
+        #     ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
+        #      'user', 'passwd']
+        conn = jaydebeapi.connect(driver, driver_args)
         return jaydebeapi, conn
 
     def _driver_specific_sql(self, data_file):
-        driver = driver_name()
-        sql_file = os.path.join(this_dir, 'data', '%s_%s.sql' % (data_file,
-                                                                 driver))
         if os.path.exists(sql_file):
             return sql_file
         else:
-            return os.path.join(this_dir, 'data', '%s.sql' % data_file)
+            return os.path.join(_THIS_DIR, 'data', '%s.sql' % data_file)
 
     def setUp(self):
         (self.dbapi, self.conn) = self.connect() 
-        create_sql = self._driver_specific_sql('create')
-        self.sql_file(create_sql)
-        insert_sql = self._driver_specific_sql('insert')
-        self.sql_file(insert_sql)
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create.sql'))
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
 
     def tearDown(self):
         cursor = self.conn.cursor()
