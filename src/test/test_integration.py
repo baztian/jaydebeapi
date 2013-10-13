@@ -197,7 +197,7 @@ class SqliteTestBase(IntegrationTestBase):
         result = cursor.fetchone()
         cursor.close()
         value = result[0]
-        self.assertEqual(value, 'abcdef')
+        self.assertEqual(value, buffer('abcdef'))
 
 @unittest.skipIf(is_jython(), "requires python")
 class SqlitePyTest(SqliteTestBase, unittest.TestCase):
