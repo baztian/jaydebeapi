@@ -199,7 +199,7 @@ class SqliteTestBase(IntegrationTestBase):
         value = result[0]
         assert 'abcdef' == value
 
-@unittest.skip(is_jython())
+@unittest.skipIf(is_jython(), "requires python")
 class SqlitePyTest(SqliteTestBase, unittest.TestCase):
 
     def connect(self):
