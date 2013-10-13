@@ -68,29 +68,29 @@ class IntegrationTestBase(object):
         cursor = self.conn.cursor()
         stmt = "select * from ACCOUNT where ACCOUNT_ID is null"
         cursor.execute(stmt)
-        assert [] == cursor.fetchall()
+        self.assertEqual(cursor.fetchall(), [])
 
     def test_execute_and_fetch(self):
         cursor = self.conn.cursor()
         cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
                        "from ACCOUNT")
         result = cursor.fetchall()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
-         (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)] == result
+        self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
+                                  (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)])
 
     def test_execute_and_fetch_parameter(self):
         cursor = self.conn.cursor()
         cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
                        "from ACCOUNT where ACCOUNT_NO = ?", (18,))
         result = cursor.fetchall()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
+        self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)])
 
     def test_execute_and_fetchone(self):
         cursor = self.conn.cursor()
         cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
                        "from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchone()
-        assert (u'2009-09-10 14:15:22.123456', 18, 12.4, None) == result
+        self.assertEqual(result, (u'2009-09-10 14:15:22.123456', 18, 12.4, None))
         cursor.close()
 
     def test_execute_reset_description_without_execute_result(self):
@@ -99,24 +99,24 @@ class IntegrationTestBase(object):
         """
         cursor = self.conn.cursor()
         cursor.execute("select * from ACCOUNT")
-        assert None != cursor.description
+        self.assertIsNotNone(cursor.description)
         cursor.fetchone()
         cursor.execute("delete from ACCOUNT")
-        assert None == cursor.description
+        self.assertIsNone(cursor.description)
 
     def test_execute_and_fetchone_after_end(self):
         cursor = self.conn.cursor()
         cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
         cursor.fetchone()
         result = cursor.fetchone()
-        assert None is result
+        self.assertIsNone(result)
 
     def test_execute_and_fetchmany(self):
         cursor = self.conn.cursor()
         cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
                        "from ACCOUNT order by ACCOUNT_NO")
         result = cursor.fetchmany()
-        assert [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)] == result
+        self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)])
         # TODO: find out why this cursor has to be closed in order to
         # let this test work with sqlite if __del__ is not overridden
         # in cursor
@@ -132,7 +132,7 @@ class IntegrationTestBase(object):
             ( '2009-09-11 14:15:22.123452', 22, 13.3 ),
             )
         cursor.executemany(stmt, parms)
-        assert cursor.rowcount == 3
+        self.assertEqual(cursor.rowcount, 3)
 
     def test_execute_types(self):
         cursor = self.conn.cursor()
@@ -160,7 +160,7 @@ class IntegrationTestBase(object):
         cursor.close()
         exp = ( '2010-01-26 14:31:59', account_no, balance, blocking,
                  dbl_col, '2008-02-27', valid, product_name )
-        assert exp == result
+        self.assertEqual(result, exp)
 
     def test_execute_different_rowcounts(self):
         cursor = self.conn.cursor()
@@ -171,12 +171,12 @@ class IntegrationTestBase(object):
             ( '2009-09-11 14:15:22.123452', 22, 13.3 ),
             )
         cursor.executemany(stmt, parms)
-        assert cursor.rowcount == 2
+        self.assertEqual(cursor.rowcount, 2)
         parms = ( '2009-09-11 14:15:22.123451', 21, 13.2 )
         cursor.execute(stmt, parms)
-        assert cursor.rowcount == 1
+        self.assertEqual(cursor.rowcount, 1)
         cursor.execute("select * from ACCOUNT")
-        assert cursor.rowcount == -1
+        self.assertEqual(cursor.rowcount, -1)
 
 class SqliteTestBase(IntegrationTestBase):
 
@@ -197,7 +197,7 @@ class SqliteTestBase(IntegrationTestBase):
         result = cursor.fetchone()
         cursor.close()
         value = result[0]
-        assert 'abcdef' == value
+        self.assertEqual(value, 'abcdef')
 
 @unittest.skipIf(is_jython(), "requires python")
 class SqlitePyTest(SqliteTestBase, unittest.TestCase):
