@@ -30,7 +30,7 @@ _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 def is_jython():
     return sys.platform.lower().startswith('java')
 
-class IntegrationTest(unittest.TestCase):
+class IntegrationTestBase(object):
 
     def sql_file(self, filename):
         f = open(filename, 'r')
@@ -49,46 +49,15 @@ class IntegrationTest(unittest.TestCase):
         for i in stmts:
             cursor.execute(i)
 
-    def connect(self):
-        # rename the latter connect method to run tests against
-        # pysqlite
-        msg = "Warinng: Your are not running the tests against JayDeBeApi."
-        print >> sys.stderr, msg
-        import sqlite3
-        return sqlite3, sqlite3.connect(':memory:')
-
-    def connect(self):
-        #http://bitbucket.org/xerial/sqlite-jdbc
-        # sqlite-jdbc-3.7.2.jar
-        driver, driver_args = 'org.sqlite.JDBC', 'jdbc:sqlite::memory:'
-        # http://hsqldb.org/
-        # hsqldb.jar
-        #driver, driver_args = 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.',
-        #                                                'SA', '']
-        # db2jcc
-        # driver, driver_args = 'com.ibm.db2.jcc.DB2Driver', \
-        #    ['jdbc:db2://4.100.73.81:50000/db2t', 'user', 'passwd']
-        # driver from http://www.ch-werner.de/javasqlite/ seems to be
-        # crap as it returns decimal values as VARCHAR type
-        # sqlite.jar
-        # driver, driver_args = 'SQLite.JDBCDriver', 'jdbc:sqlite:/:memory:'
-        # Oracle Thin Driver
-        # driver, driver_args = 'oracle.jdbc.OracleDriver', \
-        #     ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
-        #      'user', 'passwd']
-        conn = jaydebeapi.connect(driver, driver_args)
-        return jaydebeapi, conn
-
-    def _driver_specific_sql(self, data_file):
-        if os.path.exists(sql_file):
-            return sql_file
-        else:
-            return os.path.join(_THIS_DIR, 'data', '%s.sql' % data_file)
-
     def setUp(self):
-        (self.dbapi, self.conn) = self.connect() 
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create.sql'))
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
+        (self.dbapi, self.conn) = self.connect()
+        self.setUpSql()
+
+    def setUpSql(self):
+        raise NotImplementedError
+
+    def connect(self):
+        raise NotImplementedError
 
     def tearDown(self):
         cursor = self.conn.cursor()
@@ -193,21 +162,6 @@ class IntegrationTest(unittest.TestCase):
                  dbl_col, '2008-02-27', valid, product_name )
         assert exp == result
 
-    def test_execute_type_blob(self):
-        cursor = self.conn.cursor()
-        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
-               "STUFF) values (?, ?, ?, ?)"
-        stuff = self.dbapi.Binary('abcdef')
-        parms = ('2009-09-11 14:15:22.123450', 20, 13.1, stuff)
-        cursor.execute(stmt, parms)
-        stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
-        parms = (20, )
-        cursor.execute(stmt, parms)
-        result = cursor.fetchone()
-        cursor.close()
-        value = result[0]
-        assert 'abcdef' == value
-
     def test_execute_different_rowcounts(self):
         cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
@@ -223,3 +177,63 @@ class IntegrationTest(unittest.TestCase):
         assert cursor.rowcount == 1
         cursor.execute("select * from ACCOUNT")
         assert cursor.rowcount == -1
+
+class SqliteTestBase(IntegrationTestBase):
+
+    def setUpSql(self):
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create.sql'))
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
+
+    def test_execute_type_blob(self):
+        cursor = self.conn.cursor()
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
+               "STUFF) values (?, ?, ?, ?)"
+        stuff = self.dbapi.Binary('abcdef')
+        parms = ('2009-09-11 14:15:22.123450', 20, 13.1, stuff)
+        cursor.execute(stmt, parms)
+        stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
+        parms = (20, )
+        cursor.execute(stmt, parms)
+        result = cursor.fetchone()
+        cursor.close()
+        value = result[0]
+        assert 'abcdef' == value
+
+@unittest.skip(is_jython())
+class SqlitePyTest(SqliteTestBase, unittest.TestCase):
+
+    def connect(self):
+        import sqlite3
+        return sqlite3, sqlite3.connect(':memory:')
+
+class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
+
+    def connect(self):
+        #http://bitbucket.org/xerial/sqlite-jdbc
+        # sqlite-jdbc-3.7.2.jar
+        driver, driver_args = 'org.sqlite.JDBC', 'jdbc:sqlite::memory:'
+        # db2jcc
+        # driver, driver_args = 'com.ibm.db2.jcc.DB2Driver', \
+        #    ['jdbc:db2://4.100.73.81:50000/db2t', 'user', 'passwd']
+        # driver from http://www.ch-werner.de/javasqlite/ seems to be
+        # crap as it returns decimal values as VARCHAR type
+        # sqlite.jar
+        # driver, driver_args = 'SQLite.JDBCDriver', 'jdbc:sqlite:/:memory:'
+        # Oracle Thin Driver
+        # driver, driver_args = 'oracle.jdbc.OracleDriver', \
+        #     ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
+        #      'user', 'passwd']
+        return jaydebeapi, jaydebeapi.connect(driver, driver_args)
+
+class HsqldbTest(IntegrationTestBase, unittest.TestCase):
+
+    def connect(self):
+        # http://hsqldb.org/
+        # hsqldb.jar
+        driver, driver_args = 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.',
+                                                        'SA', '']
+        return jaydebeapi, jaydebeapi.connect(driver, driver_args)
+
+    def setUpSql(self):
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_hsqldb.sql'))
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
