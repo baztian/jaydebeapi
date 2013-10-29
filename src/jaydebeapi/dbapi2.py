@@ -431,7 +431,7 @@ class Cursor(object):
     def setinputsizes(self, sizes):
         pass
 
-    def setoutputsize(self, size, column):
+    def setoutputsize(self, size, column=None):
         pass
 
 def _to_datetime(java_val):

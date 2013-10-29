@@ -62,7 +62,7 @@ arguments that are internally passed to the Java
 connection URL. See the Javadoc of ``DriverManager`` class for
 details.
 
-As the next parameter to ``connect`` you can optionally specify the
+The next parameter to ``connect`` is optional and specifies the
 jar-Files of the driver if your classpath isn't set up sufficiently
 yet. The classpath set in ``CLASSPATH`` environment variable will be
 honored. See the documentation of your Java runtime environment.
@@ -156,9 +156,11 @@ Changelog
   - More convenient way to setup Java classpath. *Important note*
     check the changes to the ``connect`` method and adapt your code.
 
+  - Honor ``CLASSPATH`` if used in JPype mode.
+
   - Set ``.rowcount`` properly.
 
-  - Honor ``CLASSPATH`` if used in JPype mode.
+  - Changed signature of ``.setoutputsize()`` to be DB-API compliant.
 
 - 0.1.3
 
