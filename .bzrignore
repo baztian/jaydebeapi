@@ -11,3 +11,6 @@
 **/*.log
 JayDeBeApi.egg-info
 ./libs/**/*.class
+./mockdriver/target
+./mockdriver/.classpath
+./mockdriver/.project
