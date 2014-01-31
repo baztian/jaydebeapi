@@ -187,12 +187,12 @@ Changelog
 To do
 =====
 
-- Extract Java calls to seperate Java methods to increase performance.
+- Extract Java calls to separate Java methods to increase performance.
 - Check if https://code.launchpad.net/dbapi-compliance can help making
-  JayDeBeApi more DB-API complient.
+  JayDeBeApi more DB-API compliant.
 - Test it on different databases and provide a flexible db specific
   pluign mechanism.
-- SQLAlchemy modules (seperate project)
+- SQLAlchemy modules (separate project)
 
 .. _DB-API: http://www.python.org/dev/peps/pep-0249/
 .. _JPype: http://jpype.sourceforge.net/
