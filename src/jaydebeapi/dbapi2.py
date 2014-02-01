@@ -24,10 +24,20 @@ import os
 import time
 import re
 import sys
+import warnings
 
 _jdbc_connect = None
 
 _java_array_byte = None
+
+_handle_sql_exception = None
+
+def _handle_sql_exception_jython(ex):
+    from java.sql import SQLException
+    if isinstance(ex, SQLException):
+        raise Error
+    else:
+        raise ex
 
 def _jdbc_connect_jython(jclassname, jars, libs, *args):
     if _converters is None:
@@ -80,7 +90,17 @@ def _jython_set_classpath(jars):
 def _prepare_jython():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jython
+    global _handle_sql_exception
+    _handle_sql_exception = _handle_sql_exception_jython
 
+def _handle_sql_exception_jpype(ex):
+    import jpype
+    SQLException = jpype.java.sql.SQLException
+    if issubclass(ex.__javaclass__, SQLException):
+        raise Error
+    else:
+        raise ex
+    
 def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     import jpype
     if not jpype.isJVMStarted():
@@ -138,6 +158,8 @@ def _jar_glob(item):
 def _prepare_jpype():
     global _jdbc_connect
     _jdbc_connect = _jdbc_connect_jpype
+    global _handle_sql_exception
+    _handle_sql_exception = _handle_sql_exception_jpype
 
 if sys.platform.lower().startswith('java'):
     _prepare_jython()
@@ -149,8 +171,13 @@ threadsafety = 1
 paramstyle = 'qmark'
 
 class DBAPITypeObject(object):
+    _mappings = {}
     def __init__(self,*values):
         self.values = values
+        for i in values:
+            if i in DBAPITypeObject._mappings:
+                raise ValueError, "Non unique mapping for type '%s'" % i
+            DBAPITypeObject._mappings[i] = self
     def __cmp__(self,other):
         if other in self.values:
             return 0
@@ -158,6 +185,15 @@ class DBAPITypeObject(object):
             return 1
         else:
             return -1
+    @classmethod
+    def _map_jdbc_type_to_dbapi(cls, jdbc_type):
+        try:
+            return cls._mappings[jdbc_type.upper()]
+        except KeyError:
+            warnings.warn("No type mapping for JDBC type '%s'. "
+                          "Using None as a default." % jdbc_type)
+            return None
+
 
 STRING = DBAPITypeObject("CHARACTER", "CHAR", "VARCHAR",
                           "CHARACTER VARYING", "CHAR VARYING", "STRING",)
@@ -272,20 +308,39 @@ def connect(jclassname, driver_args, jars=None, libs=None):
 # DB-API 2.0 Connection Object
 class Connection(object):
 
-    jconn = None
+    Error = Error
+    Warning = Warning
+    InterfaceError = InterfaceError
+    DatabaseError = DatabaseError
+    InternalError = InternalError
+    OperationalError = OperationalError
+    ProgrammingError = ProgrammingError
+    IntegrityError = IntegrityError
+    DataError = DataError
+    NotSupportedError = NotSupportedError
 
     def __init__(self, jconn, converters):
         self.jconn = jconn
+        self._closed = False
         self._converters = converters
 
     def close(self):
+        if self._closed:
+            raise Error
         self.jconn.close()
+        self._closed = True
 
     def commit(self):
-        self.jconn.commit()
+        try:
+            self.jconn.commit()
+        except Exception, ex:
+            _handle_sql_exception(ex)
 
     def rollback(self):
-        self.jconn.rollback()
+        try:
+            self.jconn.rollback()
+        except Exception, ex:
+            _handle_sql_exception(ex)
 
     def cursor(self):
         return Cursor(self, self._converters)
@@ -313,8 +368,10 @@ class Cursor(object):
             self._description = []
             for col in range(1, count + 1):
                 size = m.getColumnDisplaySize(col)
+                jdbc_type = m.getColumnTypeName(col)
+                dbapi_type = DBAPITypeObject._map_jdbc_type_to_dbapi(jdbc_type)
                 col_desc = ( m.getColumnName(col),
-                             m.getColumnTypeName(col),
+                             dbapi_type,
                              size,
                              size,
                              m.getPrecision(col),
@@ -352,12 +409,17 @@ class Cursor(object):
             prep_stmt.setObject(i + 1, parameters[i])
 
     def execute(self, operation, parameters=None):
+        if self._connection._closed:
+            raise Error
         if not parameters:
             parameters = ()
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
         self._set_stmt_parms(self._prep, parameters)
-        is_rs = self._prep.execute()
+        try:
+            is_rs = self._prep.execute()
+        except Exception, ex:
+            _handle_sql_exception(ex)
         if is_rs:
             self._rs = self._prep.getResultSet()
             self._meta = self._rs.getMetaData()
@@ -365,7 +427,7 @@ class Cursor(object):
         else:
             self.rowcount = self._prep.getUpdateCount()
         # self._prep.getWarnings() ???
-
+        
     def executemany(self, operation, seq_of_parameters):
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
@@ -378,7 +440,8 @@ class Cursor(object):
         self._close_last()
 
     def fetchone(self):
-        #raise if not rs
+        if not self._rs:
+            raise Error
         if not self._rs.next():
             return None
         row = []
@@ -396,6 +459,8 @@ class Cursor(object):
         return tuple(row)
 
     def fetchmany(self, size=None):
+        if not self._rs:
+            raise Error
         if size is None:
             size = self.arraysize
         # TODO: handle SQLException if not supported by db
