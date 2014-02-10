@@ -26,7 +26,7 @@ setup(
     name = 'JayDeBeApi',
     version = '0.1.4',
     author = 'Bastian Bowe',
-    author_email = 'bastian.bowe@gmail.com',
+    author_email = 'bastian.dev@gmail.com',
     license = 'GNU LGPL',
     url='https://launchpad.net/jaydebeapi',
     description=('A bridge from JDBC database drivers to Python DB-API.'),
