@@ -225,6 +225,10 @@ class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
         #      'user', 'passwd']
         return jaydebeapi, jaydebeapi.connect(driver, driver_args)
 
+    @unittest.skipUnless(is_jython(), "don't know how to support blob")
+    def test_execute_type_blob(self):
+        return super(SqliteXerialTest, self).test_execute_type_blob()
+
 class HsqldbTest(IntegrationTestBase, unittest.TestCase):
 
     def connect(self):
