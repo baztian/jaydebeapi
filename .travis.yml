@@ -6,9 +6,8 @@ python:
 
 env:
   matrix:
-    - PYTHON_IMPL=cPython
-    - BACKEND=hsqldb
-    - BACKEND=sqlitejdbc
+    - PYTHON_IMPL=cPython BACKEND=hsqldb
+    - PYTHON_IMPL=cPython BACKEND=sqlitejdbc
 
 matrix:
   # exclude:
