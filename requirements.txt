@@ -1,0 +1,3 @@
+git+https://github.com/originell/jpype.git#egg=jpype
+jip==0.7
+-e .

@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - '2.7'
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq openjdk-7-jdk openjdk-7-jre
+
+install:
+  - pip install -r requirements.txt
+  - jip install org.xerial:sqlite-jdbc:3.7.2
+  - jip install org.hsqldb:hsqldb:1.8.0.10
+
+script:
+  - export CLASSPATH=$VIRTUAL_ENV/javalib/*
+  - python test.py
