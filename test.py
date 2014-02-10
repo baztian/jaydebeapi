@@ -29,7 +29,11 @@ def main():
         runner = xmlrunner.XMLTestRunner(output='build/test-reports')
     else:
         runner = unittest2.TextTestRunner(verbosity=2)
-    runner.run(suite)
-
+    result = runner.run(suite)
+    if result.wasSuccessful():
+        return 0
+    else:
+        return 1
+    
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
