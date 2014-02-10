@@ -1,9 +1,25 @@
 language: python
 
 python:
+  - '2.6'
   - '2.7'
 
+env:
+  matrix:
+    - PYTHON_IMPL=cPython
+    - BACKEND=hsqldb
+    - BACKEND=sqlitejdbc
+
+matrix:
+  # exclude:
+  #   - python: 2.7
+  #     env: BACKEND=sqlitejdbc
+  include:
+    - python: 2.7
+      env: PYTHON_IMPL=jython_2_5_3 BACKEND=hsqldb
+
 before_install:
+  - echo $TRAVIS_PYTHON_VERSION $PYTHON_IMPL $BACKEND
   - sudo apt-get update -qq
   - sudo apt-get install -qq openjdk-7-jdk openjdk-7-jre
 
