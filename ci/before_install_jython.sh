@@ -20,4 +20,6 @@ then
     #$VIRTUAL_ENV/jython/bin/easy_install install virtualenv==1.9.1
     sudo pip install virtualenv==1.9.1
 fi
+which virtualenv
+virtualenv --version
 virtualenv -p ~/jython/bin/jython ~/myvirtualenv
