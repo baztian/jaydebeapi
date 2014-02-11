@@ -18,12 +18,11 @@ matrix:
       env: PYTHON_IMPL=jython_2_5_3 BACKEND=hsqldb
 
 before_install:
-  - echo $TRAVIS_PYTHON_VERSION $PYTHON_IMPL $BACKEND
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq openjdk-7-jdk openjdk-7-jre
+  - ci/before_install.sh
 
 install:
   - pip install -r requirements.txt
+  - pip install -e .
   - jip install org.xerial:sqlite-jdbc:3.7.2
   - jip install org.hsqldb:hsqldb:1.8.0.10
 
