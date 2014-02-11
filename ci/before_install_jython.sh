@@ -5,7 +5,6 @@ pip install jip==0.7
 jip install org.python:$JYTHON
 _JYTHON_BASENAME=${JYTHON/:/-}
 OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-$VIRTUAL_ENV/bin/deactivate
 java -jar $OLD_VIRTUAL_ENV/javalib/${_JYTHON_BASENAME}.jar -s -d ~/jython
 touch requirements.txt
 BEFORE_PY_26=$(~/jython/bin/jython -c "import sys; print sys.version_info < (2, 6)")
