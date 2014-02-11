@@ -4,13 +4,20 @@ set -e
 pip install jip==0.7
 jip install org.python:$JYTHON
 _JYTHON_BASENAME=${JYTHON/:/-}
-java -jar $VIRTUAL_ENV/javalib/${_JYTHON_BASENAME}.jar -s -d $VIRTUAL_ENV/jython
+OLD_VIRTUAL_ENV=$VIRTUAL_ENV
+deactivate
+java -jar $OLD_VIRTUAL_ENV/javalib/${_JYTHON_BASENAME}.jar -s -d ~/jython
 touch requirements.txt
-BEFORE_PY_26=$($VIRTUAL_ENV/jython/bin/jython -c "import sys; print sys.version_info < (2, 6)")
+BEFORE_PY_26=$(~/jython/bin/jython -c "import sys; print sys.version_info < (2, 6)")
 if [ "$BEFORE_PY_26" == "True" ]
 then
     # Travis CI virtualenv version is greater 1.9.1, which was the
     # last version compatible with Python version before 2.6
-    pip install virtualenv==1.9.1
+    #curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py -o get-pip.py
+    #curl http://peak.telecommunity.com/dist/ez_setup.py -o ez_setup.py
+    #$VIRTUAL_ENV/jython/bin/jython get-pip.py
+    #$VIRTUAL_ENV/jython/bin/jython ez_setup.py
+    #$VIRTUAL_ENV/jython/bin/easy_install install virtualenv==1.9.1
+    sudo pip install virtualenv==1.9.1
 fi
-virtualenv -p $VIRTUAL_ENV/jython/bin/jython ~/myvirtualenv
+virtualenv -p ~/jython/bin/jython ~/myvirtualenv
