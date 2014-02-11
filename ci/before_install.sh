@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 sudo apt-get update -qq
 sudo apt-get install -qq openjdk-7-jdk openjdk-7-jre

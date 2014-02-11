@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 pip install jip==0.7
 jip install org.python:$JYTHON
