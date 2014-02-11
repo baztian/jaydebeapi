@@ -18,7 +18,8 @@ then
     #$VIRTUAL_ENV/jython/bin/jython get-pip.py
     #$VIRTUAL_ENV/jython/bin/jython ez_setup.py
     #$VIRTUAL_ENV/jython/bin/easy_install install virtualenv==1.9.1
-    sudo pip install virtualenv==1.9.1
+    #sudo pip install virtualenv==1.9.1
+    sudo pip install virtualenv==1.7.1.2
 fi
 which virtualenv
 virtualenv --version
