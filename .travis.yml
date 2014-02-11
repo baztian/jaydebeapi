@@ -6,8 +6,8 @@ python:
 
 env:
   matrix:
-    - PYTHON_IMPL=cPython BACKEND=hsqldb
-    - PYTHON_IMPL=cPython BACKEND=sqlitejdbc
+    - BACKEND=hsqldb
+    - BACKEND=sqlitejdbc
 
 matrix:
   # exclude:
@@ -15,10 +15,11 @@ matrix:
   #     env: BACKEND=sqlitejdbc
   include:
     - python: 2.7
-      env: PYTHON_IMPL=jython_2_5_3 BACKEND=hsqldb
+      env: JYTHON=jython-installer:2.5.3 BACKEND=hsqldb
 
 before_install:
   - ci/before_install.sh
+  - source ~/myvirtualenv/bin/activate
 
 install:
   - pip install -r requirements.txt
