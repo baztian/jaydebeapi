@@ -23,7 +23,7 @@ before_install:
 
 install:
   - pip install -r requirements.txt
-  - pi pinstall jip==0.7
+  - pip pinstall jip==0.7
   - pip install -e .
   - jip install org.xerial:sqlite-jdbc:3.7.2
   - jip install org.hsqldb:hsqldb:1.8.0.10
