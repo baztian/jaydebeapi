@@ -44,7 +44,8 @@ _handle_sql_exception = None
 def _handle_sql_exception_jython(ex):
     from java.sql import SQLException
     if isinstance(ex, SQLException):
-        raise Error
+        # TODO get stacktrace
+        raise Error, ex.getMessage()
     else:
         raise ex
 
@@ -106,6 +107,7 @@ def _handle_sql_exception_jpype(ex):
     import jpype
     SQLException = jpype.java.sql.SQLException
     if issubclass(ex.__javaclass__, SQLException):
+        # TODO get message and stacktrace
         raise Error
     else:
         raise ex
