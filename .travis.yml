@@ -15,15 +15,14 @@ matrix:
   #     env: BACKEND=sqlitejdbc
   include:
     - python: 2.7
-      env: JYTHON=jython-installer:2.5.3 BACKEND=hsqldb
+      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb
 
 before_install:
-  - export -f deactivate
   - ci/before_install.sh
-  - source ~/myvirtualenv/bin/activate
+  - source $HOME/myvirtualenv/bin/activate
 
 install:
-  - pip install -r requirements.txt
+  - [ -x requirements.txt ] && pip install -r requirements.txt
   - pip install jip==0.7
   - pip install -e .
   - jip install org.xerial:sqlite-jdbc:3.7.2
