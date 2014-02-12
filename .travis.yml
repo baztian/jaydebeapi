@@ -6,8 +6,9 @@ python:
 
 env:
   matrix:
-    - BACKEND=hsqldb
-    - BACKEND=sqlitejdbc
+    - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
+    - BACKEND=sqlitejdbc TESTNAME=test_integration.SqliteXerialTest
+    - BACKEND=sqlitepy TESTNAME=test_integration.SqlitePyTest
 
 matrix:
   # exclude:
@@ -15,7 +16,7 @@ matrix:
   #     env: BACKEND=sqlitejdbc
   include:
     - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb
+      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
 
 before_install:
   - ci/before_install.sh
@@ -24,9 +25,10 @@ before_install:
 install:
   - pip install jip==0.7
   - pip install -e .
+  - pip install -r requirements_test.txt
   - jip install org.xerial:sqlite-jdbc:3.7.2
   - jip install org.hsqldb:hsqldb:1.8.0.10
 
 script:
   - export CLASSPATH=$VIRTUAL_ENV/javalib/*
-  - python test.py
+  - python test/testsuite.py $TESTNAME

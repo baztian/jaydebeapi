@@ -1,0 +1,2 @@
+unittest2==0.5.1
+xmlrunner==1.7.4
