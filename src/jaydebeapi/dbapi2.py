@@ -350,13 +350,15 @@ class Connection(object):
     def commit(self):
         try:
             self.jconn.commit()
-        except Exception, ex:
+        except:
+            ex = sys.exc_info()[1]
             _handle_sql_exception(ex)
 
     def rollback(self):
         try:
             self.jconn.rollback()
-        except Exception, ex:
+        except:
+            ex = sys.exc_info()[1]
             _handle_sql_exception(ex)
 
     def cursor(self):
@@ -440,7 +442,8 @@ class Cursor(object):
         self._set_stmt_parms(self._prep, parameters)
         try:
             is_rs = self._prep.execute()
-        except Exception, ex:
+        except:
+            ex = sys.exc_info()[1]
             _handle_sql_exception(ex)
         if is_rs:
             self._rs = self._prep.getResultSet()
