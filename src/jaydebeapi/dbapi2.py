@@ -107,8 +107,8 @@ def _handle_sql_exception_jpype(ex):
     import jpype
     SQLException = jpype.java.sql.SQLException
     if issubclass(ex.__javaclass__, SQLException):
-        # TODO get message and stacktrace
-        raise Error
+        # TODO get stacktrace
+        raise Error, ex.message()
     else:
         raise ex
     
