@@ -28,6 +28,7 @@ $TRAVIS_BUILD_DIR/ci/before_install_jython.sh
 source $HOME/myvirtualenv/bin/activate
 
 [ -x requirements.txt ] && pip install -r requirements.txt
+
 pip install jip==0.7
 pip install -e .
 jip install org.xerial:sqlite-jdbc:3.7.2
