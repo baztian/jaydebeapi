@@ -14,13 +14,20 @@ then
     # Travis CI virtualenv version is greater 1.9.1, which was the
     # last version compatible with Python version before 2.6
     pip install virtualenv==1.9.1
-    # No SSL support for Jython
-    mkdir $HOME/.pip
-    cat > $HOME/.pip/pip.conf <<EOF
-[install]
-insecure = true
-EOF
 fi
+
 virtualenv --version
 # --distribute is a workaround as setuptools don't install on Jython properly
 virtualenv --distribute -p $HOME/jython/bin/jython $HOME/myvirtualenv
+
+if [ "$BEFORE_PY_26" == "True" ]
+then
+    # No SSL support for Jython
+    cat > $HOME/myvirtualenv/pip.conf <<EOF
+[install]
+insecure = true
+EOF
+    cat <<EOF >> $HOME/myvirtualenv/bin/activate
+export PIP_CONFIG_FILE=$HOME/myvirtualenv/pip.conf
+EOF
+fi
