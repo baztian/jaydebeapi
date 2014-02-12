@@ -6,7 +6,7 @@ sudo apt-get install -qq openjdk-7-jdk openjdk-7-jre
 
 [ -n "$JYTHON" ] && "${TRAVIS_BUILD_DIR}/ci/before_install_jython.sh" || "${TRAVIS_BUILD_DIR}/ci/before_install_nonjython.sh"
 
-if [ -x requirements.txt ]
+if [ -f requirements.txt ]
 then
     pip install -r requirements.txt
 fi
