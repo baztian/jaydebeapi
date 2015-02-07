@@ -2,12 +2,17 @@
 set -e
 
 export BACKEND=hsqldb
-export JYTHON=org.python:jython-installer:2.5.3
-#export JYTHON=org.python:jython-installer:2.7-b1
+#export JYTHON=org.python:jython-installer:2.5.3
+export JYTHON=org.python:jython-installer:2.7-b3
+jip install $JYTHON
 _JIP_HOME=$HOME/.jip
 export HOME=`mktemp -d`
 export TRAVIS_BUILD_DIR=$HOME/baztian/jaydebeapi
+
 git clone "$(git rev-parse --show-toplevel)" $TRAVIS_BUILD_DIR
+mkdir -p $TRAVIS_BUILD_DIR
+cp -r "$(git rev-parse --show-toplevel)"/* $TRAVIS_BUILD_DIR
+
 cd $TRAVIS_BUILD_DIR
 
 mkdir -p $HOME/.jip/cache/org.python/
@@ -31,11 +36,12 @@ source $HOME/myvirtualenv/bin/activate
 
 pip install jip==0.7
 pip install -e .
+pip install -r requirements_test.txt
 jip install org.xerial:sqlite-jdbc:3.7.2
 jip install org.hsqldb:hsqldb:1.8.0.10
 
 export CLASSPATH=$VIRTUAL_ENV/javalib/*
-python test.py
+python test/testsuite.py
 
 echo Remove ${HOME}?
 read
