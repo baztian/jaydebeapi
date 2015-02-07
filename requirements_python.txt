@@ -1,1 +1,1 @@
-git+https://github.com/originell/jpype.git@3fddd5599d33fb597119207cfaf13628613d32ec#egg=jpype
+JPype1==0.5.7
