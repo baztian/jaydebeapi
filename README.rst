@@ -25,20 +25,17 @@ plug-in mechanism.
 Install
 =======
 
-You can get and install JayDeBeApi with `easy_install
-<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ ::
+You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_
+::
 
-    $ easy_install JayDeBeApi
+    $ pip install JayDeBeApi
 
-If you want to install JayDeBeApi in Jython make sure to have
+If you want to install JayDeBeApi in Jython make sure to have pip or
 EasyInstall available for it.
 
-Or you can get a copy of the source branch using `bzr
-<http://bazaar.canonical.com/>`_ by running ::
-
-    $ bzr branch lp:jaydebeapi
-
-and install it with ::
+Or you can get a copy of the source by cloning from the `JayDeBeApi
+github project <https://github.com/baztian/jaydebeapi>`_ and install
+with ::
 
     $ python setup.py install
 
@@ -46,10 +43,11 @@ or if you are using Jython use ::
 
     $ jython setup.py install
 
-It has been tested with Jython 2.5.3.
+It has been tested with Jython 2.5.3 an 2.7-b3.
 
 If you are using cPython ensure that you have installed JPype_
-properly. It has been tested with JPype 0.5.4.
+properly. It has been tested with JPype1 0.5.7. Older JPype
+installations may cause problems.
 
 Usage
 =====
@@ -140,8 +138,8 @@ Contributing
 ============
 
 Please submit `bugs and patches
-<https://bugs.launchpad.net/jaydebeapi>`_. All contributors will be
-acknowledged. Thanks!
+<https://github.com/baztian/jaydebeapi/issues>`_. All contributors
+will be acknowledged. Thanks!
 
 License
 =======
@@ -154,7 +152,15 @@ distribution for details.
 Changelog
 =========
 
-- 0.1.4
+- 0.1.5 - To be released
+
+  - Host project source code at github.
+
+  - Use Travis CI build matrix.
+
+  - Require JPype1.
+
+- 0.1.4 - 2013-10-29
 
   - More convenient way to setup Java classpath. *Important note*
     check the changes to the ``connect`` method and adapt your code.
@@ -165,7 +171,7 @@ Changelog
 
   - Changed signature of ``.setoutputsize()`` to be DB-API compliant.
 
-- 0.1.3
+- 0.1.3 - 2011-01-27
 
   - Fixed DB-API_ violation: Use ``curs.execute('foo ?', (bar, baz))``
     instead of ``curs.execute('foo ?', bar, baz)``.
@@ -174,16 +180,16 @@ Changelog
 
   - Improved type handling. Initial support for BLOB columns.
 
-- 0.1.2
+- 0.1.2 - 2011-01-25
 
   - ``easy_install JayDeBeApi`` should really work.
 
-- 0.1.1
+- 0.1.1 - 2010-12-12
 
   - Fixed bug #688290 "NULL values with converters error on fetch".
   - Fixed bug #684909 "Selecting ROWIDs errors out on fetch".
 
-- 0.1
+- 0.1 - 2010-08-10
 
   - Initial release.
 
@@ -198,4 +204,4 @@ To do
 - SQLAlchemy modules (separate project)
 
 .. _DB-API: http://www.python.org/dev/peps/pep-0249/
-.. _JPype: http://jpype.sourceforge.net/
+.. _JPype: https://pypi.python.org/pypi/JPype1/
