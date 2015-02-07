@@ -41,7 +41,7 @@ jip install org.xerial:sqlite-jdbc:3.7.2
 jip install org.hsqldb:hsqldb:1.8.0.10
 
 export CLASSPATH=$VIRTUAL_ENV/javalib/*
-python test/testsuite.py
+python test/testsuite.py test_integration.HsqldbTest
 
 echo Remove ${HOME}?
 read
