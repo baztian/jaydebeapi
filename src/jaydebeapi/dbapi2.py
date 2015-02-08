@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 
-# Copyright 2010, 2011, 2012, 2013 Bastian Bowe
+# Copyright 2010-2015 Bastian Bowe
 #
 # This file is part of JayDeBeApi.
 # JayDeBeApi is free software: you can redistribute it and/or modify
@@ -29,6 +29,12 @@ import re
 import sys
 import warnings
 
+# Mapping from java.sql.Types attribute name to attribute value
+_jdbc_name_to_const = None
+
+# Mapping from java.sql.Types attribute constant value to it's attribute name
+_jdbc_const_to_name = None
+
 _jdbc_connect = None
 
 _java_array_byte = None
@@ -43,7 +49,7 @@ def _handle_sql_exception_jython(ex):
         raise ex
 
 def _jdbc_connect_jython(jclassname, jars, libs, *args):
-    if _converters is None:
+    if _jdbc_name_to_const is None:
         from java.sql import Types
         types = Types
         types_map = {}
@@ -51,7 +57,7 @@ def _jdbc_connect_jython(jclassname, jars, libs, *args):
         for i in dir(types):
             if const_re.match(i):
                 types_map[i] = getattr(types, i)
-        _init_converters(types_map)
+        _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
         import jarray
@@ -125,12 +131,12 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
         jpype.startJVM(jvm_path, *args)
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
-    if _converters is None:
+    if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
         for i in types.__javaclass__.getClassFields():
             types_map[i.getName()] = i.getStaticAttribute()
-        _init_converters(types_map)
+        _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
         def _java_array_byte(data):
@@ -175,50 +181,58 @@ paramstyle = 'qmark'
 
 class DBAPITypeObject(object):
     _mappings = {}
-    def __init__(self,*values):
+    def __init__(self, *values):
+        """Construct new DB-API 2.0 type object.
+        values: Attribute names of java.sql.Types constants"""
         self.values = values
-        for i in values:
-            if i in DBAPITypeObject._mappings:
-                raise ValueError, "Non unique mapping for type '%s'" % i
-            DBAPITypeObject._mappings[i] = self
-    def __cmp__(self,other):
+        for type_name in values:
+            if type_name in DBAPITypeObject._mappings:
+                raise ValueError, "Non unique mapping for type '%s'" % type_name
+            DBAPITypeObject._mappings[type_name] = self
+    def __cmp__(self, other):
         if other in self.values:
             return 0
         if other < self.values:
             return 1
         else:
             return -1
+    def __repr__(self):
+        return 'DBAPITypeObject(%s)' % ", ".join([repr(i) for i in self.values])
     @classmethod
-    def _map_jdbc_type_to_dbapi(cls, jdbc_type):
+    def _map_jdbc_type_to_dbapi(cls, jdbc_type_const):
         try:
-            return cls._mappings[jdbc_type.upper()]
+            type_name = _jdbc_const_to_name[jdbc_type_const]
         except KeyError:
-            warnings.warn("No type mapping for JDBC type '%s'. "
-                          "Using None as a default." % jdbc_type)
+            warnings.warn("Unknown JDBC type with constant value %d. "
+                          "Using None as a default type_code." % jdbc_type_const)
+            return None
+        try:
+            return cls._mappings[type_name]
+        except KeyError:
+            warnings.warn("No type mapping for JDBC type '%s' (constant value %d). "
+                          "Using None as a default type_code." % (type_name, jdbc_type_const))
             return None
 
 
-STRING = DBAPITypeObject("CHARACTER", "CHAR", "VARCHAR",
-                          "CHARACTER VARYING", "CHAR VARYING", "STRING",)
+STRING = DBAPITypeObject('CHAR', 'NCHAR', 'NVARCHAR', 'VARCHAR', 'OTHER')
 
-TEXT = DBAPITypeObject("CLOB", "CHARACTER LARGE OBJECT",
-                       "CHAR LARGE OBJECT",  "XML",)
+TEXT = DBAPITypeObject('CLOB', 'LONGNVARCHAR', 'LONGNARCHAR', 'NCLOB', 'SQLXML')
 
-BINARY = DBAPITypeObject("BLOB", "BINARY LARGE OBJECT",)
+BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject("INTEGER", "INT", "SMALLINT", "BIGINT",)
+NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT')
 
-FLOAT = DBAPITypeObject("FLOAT", "REAL", "DOUBLE", "DECFLOAT")
+FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
 
-DECIMAL = DBAPITypeObject("DECIMAL", "DEC", "NUMERIC", "NUM",)
+DECIMAL = DBAPITypeObject('DECIMAL', 'NUMERIC')
 
-DATE = DBAPITypeObject("DATE",)
+DATE = DBAPITypeObject('DATE')
 
-TIME = DBAPITypeObject("TIME",)
+TIME = DBAPITypeObject('TIME')
 
-DATETIME = DBAPITypeObject("TIMESTAMP",)
+DATETIME = DBAPITypeObject('TIMESTAMP')
 
-ROWID = DBAPITypeObject(())
+ROWID = DBAPITypeObject('ROWID')
 
 # DB-API 2.0 Module Interface Exceptions
 class Error(exceptions.StandardError):
@@ -371,8 +385,13 @@ class Cursor(object):
             self._description = []
             for col in range(1, count + 1):
                 size = m.getColumnDisplaySize(col)
-                jdbc_type = m.getColumnTypeName(col)
-                dbapi_type = DBAPITypeObject._map_jdbc_type_to_dbapi(jdbc_type)
+                jdbc_type = m.getColumnType(col)
+                if jdbc_type == 0:
+                    # PEP-0249: SQL NULL values are represented by the
+                    # Python None singleton
+                    dbapi_type = None
+                else:
+                    dbapi_type = DBAPITypeObject._map_jdbc_type_to_dbapi(jdbc_type)
                 col_desc = ( m.getColumnName(col),
                              dbapi_type,
                              size,
@@ -450,14 +469,8 @@ class Cursor(object):
         row = []
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
-            # print sqltype
-            # TODO: Oracle 11 will read a oracle.sql.TIMESTAMP
-            # which can't be converted to string easily
-            v = self._rs.getObject(col)
-            if v:
-                converter = self._converters.get(sqltype)
-                if converter:
-                    v = converter(v)
+            converter = self._converters.get(sqltype, _unknownSqlTypeConverter)
+            v = converter(self._rs, col)
             row.append(v)
         return tuple(row)
 
@@ -502,20 +515,35 @@ class Cursor(object):
     def setoutputsize(self, size, column=None):
         pass
 
-def _to_datetime(java_val):
-    d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
-    if not isinstance(java_val, basestring):
-        d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
-    return str(d)
-    # return str(java_val)
+def _unknownSqlTypeConverter(rs, col):
+    return rs.getObject(col)
 
-def _to_date(java_val):
+def _to_datetime(rs, col):
+    java_val = rs.getTimestamp(col)
+    if not java_val:
+        return
+    d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
+    d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+    return str(d)
+
+def _to_date(rs, col):
+    java_val = rs.getDate(col)
+    if not java_val:
+        return
     d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
     return d.strftime("%Y-%m-%d")
-    # return str(java_val)
+
+def _to_binary(rs, col):
+    java_val = rs.getObject(col)
+    if java_val is None:
+        return
+    return str(java_val)
 
 def _java_to_py(java_method):
-    def to_py(java_val):
+    def to_py(rs, col):
+        java_val = rs.getObject(col)
+        if java_val is None:
+            return
         if isinstance(java_val, (basestring, int, long, float, bool)):
             return java_val
         return getattr(java_val, java_method)()
@@ -524,6 +552,13 @@ def _java_to_py(java_method):
 _to_double = _java_to_py('doubleValue')
 
 _to_int = _java_to_py('intValue')
+
+def _init_types(types_map):
+    global _jdbc_name_to_const
+    _jdbc_name_to_const = types_map
+    global _jdbc_const_to_name
+    _jdbc_const_to_name = dict((y,x) for x,y in types_map.iteritems())
+    _init_converters(types_map)
 
 def _init_converters(types_map):
     """Prepares the converters for conversion of java types to python
@@ -541,11 +576,11 @@ _converters = None
 
 _DEFAULT_CONVERTERS = {
     # see
-    # http://download.oracle.com/javase/1.4.2/docs/api/java/sql/Types.html
+    # http://download.oracle.com/javase/6/docs/api/java/sql/Types.html
     # for possible keys
     'TIMESTAMP': _to_datetime,
     'DATE': _to_date,
-    'BINARY': str,
+    'BINARY': _to_binary,
     'DECIMAL': _to_double,
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
