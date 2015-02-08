@@ -162,6 +162,27 @@ class IntegrationTestBase(object):
                  dbl_col, '2008-02-27', valid, product_name )
         self.assertEqual(result, exp)
 
+    def test_execute_type_time(self):
+        cursor = self.conn.cursor()
+        stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
+               "OPENED_AT_TIME) " \
+               "values (?, ?, ?, ?)"
+        d = self.dbapi
+        account_id = d.Timestamp(2010, 01, 26, 14, 31, 59)
+        account_no = 20
+        balance = 1.2
+        opened_at_time = d.Time(13, 59, 59)
+        parms = (account_id, account_no, balance, opened_at_time)
+        cursor.execute(stmt, parms)
+        stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, OPENED_AT_TIME " \
+               "from ACCOUNT where ACCOUNT_NO = ?"
+        parms = (20, )
+        cursor.execute(stmt, parms)
+        result = cursor.fetchone()
+        cursor.close()
+        exp = ( '2010-01-26 14:31:59', account_no, balance, '13:59:59' )
+        self.assertEqual(result, exp)
+
     def test_execute_different_rowcounts(self):
         cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
@@ -205,6 +226,9 @@ class SqlitePyTest(SqliteTestBase, unittest.TestCase):
     def connect(self):
         import sqlite3
         return sqlite3, sqlite3.connect(':memory:')
+
+    def test_execute_type_time(self):
+        """Time type not supported by PySqlite"""
 
 class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
 

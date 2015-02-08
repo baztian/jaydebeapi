@@ -526,6 +526,12 @@ def _to_datetime(rs, col):
     d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
     return str(d)
 
+def _to_time(rs, col):
+    java_val = rs.getTime(col)
+    if not java_val:
+        return
+    return str(java_val)
+
 def _to_date(rs, col):
     java_val = rs.getDate(col)
     if not java_val:
@@ -579,6 +585,7 @@ _DEFAULT_CONVERTERS = {
     # http://download.oracle.com/javase/6/docs/api/java/sql/Types.html
     # for possible keys
     'TIMESTAMP': _to_datetime,
+    'TIME': _to_time,
     'DATE': _to_date,
     'BINARY': _to_binary,
     'DECIMAL': _to_double,

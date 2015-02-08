@@ -158,6 +158,8 @@ Changelog
 
   - Improve robustness of java to python type conversion.
 
+  - Support Time type.
+
   - Add DB-API compliant exception handling.
 
   - Minor documentation improvements.
