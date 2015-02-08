@@ -94,7 +94,7 @@ class IntegrationTestBase(object):
         cursor.close()
 
     def test_execute_reset_description_without_execute_result(self):
-        """Excpect the descriptions property being reset when no query
+        """Expect the descriptions property being reset when no query
         has been made via execute method.
         """
         cursor = self.conn.cursor()
