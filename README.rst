@@ -156,11 +156,14 @@ Changelog
 
   - Add version number to module.
 
-  - Host project source code at github.
+  - Improve robustness of java to python type conversion.
 
-  - Use Travis CI build matrix.
+  - Add DB-API compliant exception handling.
 
-  - Require JPype1.
+  - Minor documentation improvements.
+
+  - Some development related changes (Host project at github, use
+    Travis CI, use JPype1 for tests).
 
 - 0.1.4 - 2013-10-29
 
