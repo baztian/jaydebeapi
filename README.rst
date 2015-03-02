@@ -152,7 +152,9 @@ distribution for details.
 Changelog
 =========
 
-- 0.1.5 - To be released
+- Next version - unreleased
+
+  - Add version number to module.
 
   - Host project source code at github.
 

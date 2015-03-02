@@ -17,6 +17,9 @@
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+__version_info__ = (0, 1, 4)
+__version__ = ".".join(__version_info__)
+
 import datetime
 import exceptions
 import glob
