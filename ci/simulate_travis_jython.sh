@@ -36,7 +36,7 @@ source $HOME/myvirtualenv/bin/activate
 
 pip install jip==0.7
 pip install -e .
-pip install -r requirements_test.txt
+pip install -r test-requirements.txt
 jip install org.xerial:sqlite-jdbc:3.7.2
 jip install org.hsqldb:hsqldb:1.8.0.10
 
