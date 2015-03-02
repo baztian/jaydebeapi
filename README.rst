@@ -153,6 +153,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 0.1.5 - 2015-03-02
 
   - Add version number to module.
 

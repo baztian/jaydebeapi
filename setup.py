@@ -30,7 +30,7 @@ print find_packages('src')
 setup(
     #basic package data
     name = 'JayDeBeApi',
-    version = '0.1.4',
+    version = '0.1.5',
     author = 'Bastian Bowe',
     author_email = 'bastian.dev@gmail.com',
     license = 'GNU LGPL',
