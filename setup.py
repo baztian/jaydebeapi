@@ -16,9 +16,15 @@
 # <http://www.gnu.org/licenses/>.
 # 
 
+import sys
+
 import ez_setup
 ez_setup.use_setuptools()
 from setuptools import setup, find_packages
+
+install_requires = []
+if not sys.platform.lower().startswith('java'):
+    install_requires.append('JPype1')
 
 print find_packages('src')
 setup(
@@ -46,4 +52,5 @@ setup(
 
     packages=find_packages('src'),
     package_dir={ '': 'src' },
+    install_requires=install_requires,
     )
