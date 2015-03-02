@@ -18,7 +18,7 @@
 # <http://www.gnu.org/licenses/>.
 
 __version_info__ = (0, 1, 4)
-__version__ = ".".join(__version_info__)
+__version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime
 import exceptions
