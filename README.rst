@@ -2,8 +2,20 @@
  JayDeBeApi - bridge from JDBC database drivers to Python DB-API
 =================================================================
 
-.. image:: https://travis-ci.org/baztian/jaydebeapi.png?branch=master
+.. image:: https://img.shields.io/travis/baztian/jaydebeapi/master.svg
    :target: https://travis-ci.org/baztian/jaydebeapi
+
+.. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
+    :target: https://coveralls.io/r/baztian/jaydebeapi
+
+.. image:: https://pypip.in/version/JayDeBeApi/badge.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi
+
+.. image:: https://pypip.in/py_versions/JayDeBeApi/badge.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi/
+
+.. image:: https://pypip.in/download/JayDeBeApi/badge.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi/
 
 The JayDeBeApi module allows you to connect from Python code to
 databases using Java `JDBC
