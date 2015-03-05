@@ -35,6 +35,10 @@ install:
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
   - pip install -r test-requirements.txt
+  - pip install coveralls
 
 script:
-  - python test/testsuite.py $TESTNAME
+  - coverage run --source jaydebeapi test/testsuite.py $TESTNAME
+
+after_success:
+  coveralls
