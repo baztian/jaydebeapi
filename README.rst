@@ -153,6 +153,11 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Fix Jython handling of Java exceptions that don't subclass python Exception
+
+  - Enrich exceptions with message from java SQLExceptions
+
 - 0.1.5 - 2015-03-02
 
   - Add version number to module.
