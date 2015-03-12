@@ -9,8 +9,8 @@ python:
 
 env:
   matrix:
-    - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
-    - BACKEND=sqlitejdbc TESTNAME=test_integration.SqliteXerialTest
+    - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
+    - BACKEND=sqlitejdbc TESTNAME=test_integration.SqliteXerialTest JDBC_DRIVER=org.xerial:sqlite-jdbc:3.7.2
     - BACKEND=sqlitepy TESTNAME=test_integration.SqlitePyTest
 
 matrix:
@@ -19,9 +19,9 @@ matrix:
   #     env: BACKEND=sqlitejdbc
   include:
     - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
+      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.7-b3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
+      env: JYTHON=org.python:jython-installer:2.7-b3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
 
 before_install:
   - ci/before_install.sh
@@ -31,8 +31,7 @@ install:
   - pip install jip==0.7
   - pip install -e .
   - pip install -r test-requirements.txt
-  - jip install org.xerial:sqlite-jdbc:3.7.2
-  - jip install org.hsqldb:hsqldb:1.8.0.10
+  - if [ -n "$JDBC_DRIVER" ]; then jip install $JDBC_DRIVER;fi
 
 script:
   - export CLASSPATH=$VIRTUAL_ENV/javalib/*
