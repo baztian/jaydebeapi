@@ -29,7 +29,7 @@ before_install:
 
 install:
   - pip install jip==0.7
-  - cp ci/dot_jip $VIRTUAL_ENV/.jip # TODO: Fix jip to search for local maven repo
+  - cp ci/dot_jip $VIRTUAL_ENV/.jip # TODO: Fix jip to search for local maven repo without twaking .jip
   - pip install -e .
   - pip install -r test-requirements.txt
   - jip install org.xerial:sqlite-jdbc:3.7.2
