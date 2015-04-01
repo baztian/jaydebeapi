@@ -35,7 +35,7 @@ install:
   - jip install org.xerial:sqlite-jdbc:3.7.2
   - jip install org.hsqldb:hsqldb:1.8.0.10
   - (cd mockdriver && mvn install)
-  - jip install mockdriver
+  - jip install org.jaydebeapi:mockdriver:1.0-SNAPSHOT
 
 script:
   - export CLASSPATH=$VIRTUAL_ENV/javalib/*
