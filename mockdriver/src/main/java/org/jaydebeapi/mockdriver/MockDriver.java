@@ -24,7 +24,7 @@ public class MockDriver implements Driver {
 
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
-        if (!url.startsWith("jdbc:jaydebeapi://")) {
+        if (!acceptsURL(url)) {
             return null;
         }
         return Mockito.mock(Connection.class);
@@ -32,7 +32,7 @@ public class MockDriver implements Driver {
 
     @Override
     public boolean acceptsURL(String url) throws SQLException {
-        return true;
+        return url.startsWith("jdbc:jaydebeapi://");
     }
 
     @Override
