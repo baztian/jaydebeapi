@@ -7,6 +7,11 @@ python:
   - '2.6'
   - '2.7'
 
+addons:
+  apt:
+    packages:
+    - maven
+
 env:
   matrix:
     - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
@@ -29,10 +34,13 @@ before_install:
 
 install:
   - pip install jip==0.7
+  - cp ci/dot_jip $VIRTUAL_ENV/.jip # TODO: Fix jip to search for local maven repo
   - pip install -e .
   - pip install -r test-requirements.txt
   - jip install org.xerial:sqlite-jdbc:3.7.2
   - jip install org.hsqldb:hsqldb:1.8.0.10
+  - (cd mockdriver && mvn install)
+  - jip install mockdriver
 
 script:
   - export CLASSPATH=$VIRTUAL_ENV/javalib/*

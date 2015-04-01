@@ -1,0 +1,7 @@
+[repos:local]
+uri=/home/travis/.m2/repository/
+type=local
+
+[repos:central]
+uri=http://repo1.maven.org/maven2/
+type=remote
