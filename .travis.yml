@@ -9,8 +9,9 @@ python:
 
 env:
   matrix:
-    - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
-    - BACKEND=sqlitejdbc TESTNAME=test_integration.SqliteXerialTest
+    - BACKEND=unused TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
+    - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
+    - BACKEND=sqlitejdbc TESTNAME=test_integration.SqliteXerialTest JDBC_DRIVER=org.xerial:sqlite-jdbc:3.7.2
     - BACKEND=sqlitepy TESTNAME=test_integration.SqlitePyTest
 
 matrix:
@@ -19,23 +20,21 @@ matrix:
   #     env: BACKEND=sqlitejdbc
   include:
     - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
+      env: JYTHON=org.python:jython-installer:2.5.3 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.7-rc1 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
+      env: JYTHON=org.python:jython-installer:2.7-rc1 BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
+    - python: 2.7
+      env: JYTHON=org.python:jython-installer:2.7-rc1 BACKEND=unused TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
 
 before_install:
   - ci/before_install.sh
   - source $HOME/myvirtualenv/bin/activate
 
 install:
-  - pip install jip==0.7
-  - cp ci/dot_jip $VIRTUAL_ENV/.jip # TODO: Fix jip to search for local maven repo without twaking .jip
+  - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn install) ;fi
+  - if [ -n "$JDBC_DRIVER" ]; then cp ci/dot_jip $VIRTUAL_ENV/.jip && pip install jip==0.7 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
   - pip install -e .
   - pip install -r test-requirements.txt
-  - jip install org.xerial:sqlite-jdbc:3.7.2
-  - jip install org.hsqldb:hsqldb:1.8.0.10
-  - (cd mockdriver && mvn install)
-  - jip install org.jaydebeapi:mockdriver:1.0-SNAPSHOT
 
 script:
   - export CLASSPATH=$VIRTUAL_ENV/javalib/*
