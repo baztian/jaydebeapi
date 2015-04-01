@@ -7,11 +7,6 @@ python:
   - '2.6'
   - '2.7'
 
-addons:
-  apt:
-    packages:
-    - maven
-
 env:
   matrix:
     - BACKEND=hsqldb TESTNAME=test_integration.HsqldbTest
