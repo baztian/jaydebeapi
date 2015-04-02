@@ -9,7 +9,7 @@ import unittest2 as unittest
 def main():
     parser = OptionParser()
     parser.add_option("-x", "--xml", action="store_true", dest="xml",
-                  help="write test report in xunit file format")
+                  help="write test report in xunit file format (requires xmlrunner==1.7.4)")
     (options, args) = parser.parse_args(sys.argv)
     loader = unittest.defaultTestLoader
     names = args[1:]
