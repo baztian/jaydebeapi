@@ -42,4 +42,4 @@ script:
   - $PY test/testsuite.py $TESTNAME
 
 after_success:
-  - if [ -z "$JYTHON" ]; coveralls
+  - if [ -z "$JYTHON" ]; then coveralls ;fi
