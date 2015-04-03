@@ -11,9 +11,6 @@
 .. image:: https://pypip.in/version/JayDeBeApi/badge.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi
 
-.. image:: https://pypip.in/py_versions/JayDeBeApi/badge.svg
-    :target: https://pypi.python.org/pypi/JayDeBeApi/
-
 .. image:: https://pypip.in/download/JayDeBeApi/badge.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi/
 
