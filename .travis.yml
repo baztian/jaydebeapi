@@ -35,10 +35,11 @@ install:
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
   - pip install -r test-requirements.txt
-  - pip install coveralls
+  - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
 
 script:
-  - coverage run --source jaydebeapi test/testsuite.py $TESTNAME
+  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
+  - $PY test/testsuite.py $TESTNAME
 
 after_success:
-  coveralls
+  - if [ -z "$JYTHON" ]; coveralls
