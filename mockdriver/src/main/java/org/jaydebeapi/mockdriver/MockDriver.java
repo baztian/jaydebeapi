@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
@@ -27,7 +28,10 @@ public class MockDriver implements Driver {
         if (!acceptsURL(url)) {
             return null;
         }
-        return Mockito.mock(Connection.class);
+        Connection mockConnection = Mockito.mock(Connection.class);
+        PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+        Mockito.when(mockConnection.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+        return mockConnection;
     }
 
     @Override
