@@ -8,6 +8,12 @@
 .. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
     :target: https://coveralls.io/r/baztian/jaydebeapi
 
+.. image:: https://img.shields.io/badge/python-2.6,_2.7-blue.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi
+
+.. image:: https://img.shields.io/badge/jython-2.5.3,_2.7--rc1-blue.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi
+
 .. image:: https://pypip.in/version/JayDeBeApi/badge.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi
 
