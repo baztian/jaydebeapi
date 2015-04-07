@@ -173,6 +173,8 @@ Changelog
 
   - Enrich exceptions with message from java SQLExceptions
 
+  - Fix typo LONGNARCHAR vs LONGVARCHAR (thanks @datdo for reporting #4)
+
 - 0.1.5 - 2015-03-02
 
   - Add version number to module.
