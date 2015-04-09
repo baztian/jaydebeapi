@@ -13,6 +13,12 @@ public abstract class MockConnection implements Connection {
 
     ResultSet mockResultSet;
 
+    public final void mockExceptionOnExecute(String exceptionMessage) throws SQLException {
+        PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+        Mockito.when(mockPreparedStatement.execute()).thenThrow(new SQLException(exceptionMessage));
+        Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    }
+
     public final void mockType(String sqlTypesName) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
         Mockito.when(mockPreparedStatement.execute()).thenReturn(true);

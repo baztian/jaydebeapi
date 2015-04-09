@@ -46,3 +46,13 @@ class MockTest(unittest.TestCase):
                                          extra_type_mappings.get(jsql_type_name,
                                                                  'getObject'))
                     verify_get(1)
+
+    def test_exception_on_execute(self):
+        dummy_msg = "expected"
+        self.conn.jconn.mockExceptionOnExecute(dummy_msg)
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("dummy stmt")
+            fail("expected exception")
+        except jaydebeapi.Error, e:
+            self.assertEquals(str(e), 'expected')
