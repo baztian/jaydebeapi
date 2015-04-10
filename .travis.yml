@@ -3,6 +3,16 @@ language: python
 # use container-based infrastructure
 sudo: false
 
+deploy:
+  provider: pypi
+  user: baztian
+  password:
+    secure: bUeJtZqKYSckK9nOo3KyURl+xFrs5dq/HyzrybGBpXDRv6tX/LBIxuvo1IPS8sFhkZLmT0XksKwkJ4AMh3SDjw0+wStPLr4HMo+f4cxeL9czl8FRU96wdMq/PMUIduwXUnBYfX3KwEq4udh2PZ8ex8pLdOpJpZdoGCIly7XLpFo=
+  distributions: "sdist bdist_wheel"
+  on:
+    tags: true
+    repo: baztian/jaydebeapi
+
 python:
   - '2.6'
   - '2.7'
