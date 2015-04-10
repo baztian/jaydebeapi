@@ -168,6 +168,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 0.1.6 - 2015-04-10
 
   - Fix Jython handling of Java exceptions that don't subclass python Exception
 
