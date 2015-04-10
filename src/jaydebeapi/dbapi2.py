@@ -41,13 +41,14 @@ _java_array_byte = None
 
 _handle_sql_exception = None
 
-def _handle_sql_exception_jython(ex):
+def _handle_sql_exception_jython():
     from java.sql import SQLException
-    if isinstance(ex, SQLException):
-        # TODO get stacktrace
-        raise Error, ex.getMessage()
+    exc_info = sys.exc_info()
+    if isinstance(exc_info[1], SQLException):
+        exc_type = DatabaseError
     else:
-        raise ex
+        exc_type = InterfaceError
+    raise exc_type, exc_info[1], exc_info[2]
 
 def _jdbc_connect_jython(jclassname, jars, libs, *args):
     if _jdbc_name_to_const is None:
@@ -103,14 +104,15 @@ def _prepare_jython():
     global _handle_sql_exception
     _handle_sql_exception = _handle_sql_exception_jython
 
-def _handle_sql_exception_jpype(ex):
+def _handle_sql_exception_jpype():
     import jpype
     SQLException = jpype.java.sql.SQLException
-    if issubclass(ex.__javaclass__, SQLException):
-        # TODO get stacktrace
-        raise Error, ex.message()
+    exc_info = sys.exc_info()
+    if issubclass(exc_info[1].__javaclass__, SQLException):
+        exc_type = DatabaseError
     else:
-        raise ex
+        exc_type = InterfaceError
+    raise exc_type, exc_info[1], exc_info[2]
     
 def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     import jpype
@@ -353,15 +355,13 @@ class Connection(object):
         try:
             self.jconn.commit()
         except:
-            ex = sys.exc_info()[1]
-            _handle_sql_exception(ex)
+            _handle_sql_exception()
 
     def rollback(self):
         try:
             self.jconn.rollback()
         except:
-            ex = sys.exc_info()[1]
-            _handle_sql_exception(ex)
+            _handle_sql_exception()
 
     def cursor(self):
         return Cursor(self, self._converters)
@@ -445,8 +445,7 @@ class Cursor(object):
         try:
             is_rs = self._prep.execute()
         except:
-            ex = sys.exc_info()[1]
-            _handle_sql_exception(ex)
+            _handle_sql_exception()
         if is_rs:
             self._rs = self._prep.getResultSet()
             self._meta = self._rs.getMetaData()
@@ -454,7 +453,7 @@ class Cursor(object):
         else:
             self.rowcount = self._prep.getUpdateCount()
         # self._prep.getWarnings() ???
-        
+
     def executemany(self, operation, seq_of_parameters):
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)

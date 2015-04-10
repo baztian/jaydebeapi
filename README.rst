@@ -173,6 +173,9 @@ Changelog
 
   - Enrich exceptions with message from java SQLExceptions
 
+  - Be more specific about DB API exceptions: Distinguish DatabaseError and
+    InterfaceError.
+
   - Fix typo LONGNARCHAR vs LONGVARCHAR (thanks @datdo for reporting #4)
 
 - 0.1.5 - 2015-03-02

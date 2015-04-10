@@ -13,9 +13,20 @@ public abstract class MockConnection implements Connection {
 
     ResultSet mockResultSet;
 
-    public final void mockExceptionOnExecute(String exceptionMessage) throws SQLException {
+    public final void mockExceptionOnCommit(String className, String exceptionMessage) throws SQLException {
+        Throwable exception = createException(className, exceptionMessage);
+        Mockito.doThrow(exception).when(this).commit();
+    }
+
+    public final void mockExceptionOnRollback(String className, String exceptionMessage) throws SQLException {
+        Throwable exception = createException(className, exceptionMessage);
+        Mockito.doThrow(exception).when(this).rollback();
+    }
+
+    public final void mockExceptionOnExecute(String className, String exceptionMessage) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(mockPreparedStatement.execute()).thenThrow(new SQLException(exceptionMessage));
+        Throwable exception = createException(className, exceptionMessage);
+        Mockito.when(mockPreparedStatement.execute()).thenThrow(exception);
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
     }
 
@@ -33,7 +44,19 @@ public abstract class MockConnection implements Connection {
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
     }
 
-    private int extractTypeCodeForName(String sqlTypesName) {
+    public final ResultSet verifyResultSet() {
+        return Mockito.verify(mockResultSet);
+    }
+
+    private static Throwable createException(String className, String exceptionMessage)  {
+        try {
+            return (Throwable) Class.forName(className).getConstructor(String.class).newInstance(exceptionMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't initialize class " + className + ".", e);
+        }
+    }
+
+    private static int extractTypeCodeForName(String sqlTypesName) {
         try {
             Field field = Types.class.getField(sqlTypesName);
             return field.getInt(null);
@@ -46,10 +69,6 @@ public abstract class MockConnection implements Connection {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public final ResultSet verifyResultSet() {
-        return Mockito.verify(mockResultSet);
     }
 
 }
