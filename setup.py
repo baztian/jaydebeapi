@@ -26,7 +26,6 @@ install_requires = []
 if not sys.platform.lower().startswith('java'):
     install_requires.append('JPype1')
 
-print find_packages('src')
 setup(
     #basic package data
     name = 'JayDeBeApi',
@@ -50,7 +49,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
 
-    packages=find_packages('src'),
-    package_dir={ '': 'src' },
+    packages=['jaydebeapi'],
     install_requires=install_requires,
     )
