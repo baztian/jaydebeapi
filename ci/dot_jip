@@ -1,5 +1,5 @@
 [repos:local]
-uri=/home/travis/.m2/repository/
+uri=$HOME/.m2/repository/
 type=local
 
 [repos:central]
