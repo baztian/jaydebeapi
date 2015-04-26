@@ -168,6 +168,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 0.2.0 - 2015-04-26
 
   - Python 3 support (requires JPype1 >= 0.6.0).
 
