@@ -11,7 +11,7 @@
 .. image:: https://img.shields.io/badge/python-2.6,_2.7,_3.4-blue.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi
 
-.. image:: https://img.shields.io/badge/jython-2.5.3,_2.7--rc1-blue.svg
+.. image:: https://img.shields.io/badge/jython-2.7--rc1-blue.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi
 
 .. image:: https://pypip.in/version/JayDeBeApi/badge.svg
@@ -58,7 +58,7 @@ or if you are using Jython use ::
 
     $ jython setup.py install
 
-It has been tested with Jython 2.5.3 an 2.7-b3.
+It has been tested with Jython 2.7-rc1.
 
 If you are using cPython ensure that you have installed JPype_
 properly. It has been tested with JPype1 0.5.7. Older JPype

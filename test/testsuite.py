@@ -4,7 +4,10 @@
 from optparse import OptionParser
 import sys
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 def main():
     parser = OptionParser()

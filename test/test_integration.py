@@ -23,7 +23,10 @@ import os
 import sys
 import threading
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
