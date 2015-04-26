@@ -27,8 +27,13 @@ import unittest2 as unittest
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+PY26 = not sys.version_info >= (2, 7)
+
 def is_jython():
     return sys.platform.lower().startswith('java')
+
+if PY26 and not is_jython:
+    memoryview = buffer
 
 class IntegrationTestBase(object):
 
@@ -140,12 +145,12 @@ class IntegrationTestBase(object):
                "BLOCKING, DBL_COL, OPENED_AT, VALID, PRODUCT_NAME) " \
                "values (?, ?, ?, ?, ?, ?, ?, ?)"
         d = self.dbapi
-        account_id = d.Timestamp(2010, 01, 26, 14, 31, 59)
+        account_id = d.Timestamp(2010, 1, 26, 14, 31, 59)
         account_no = 20
         balance = 1.2
         blocking = 10.0
         dbl_col = 3.5
-        opened_at = d.Date(2008, 02, 27)
+        opened_at = d.Date(2008, 2, 27)
         valid = 1
         product_name = u'Savings account'
         parms = (account_id, account_no, balance, blocking, dbl_col,
@@ -168,7 +173,7 @@ class IntegrationTestBase(object):
                "OPENED_AT_TIME) " \
                "values (?, ?, ?, ?)"
         d = self.dbapi
-        account_id = d.Timestamp(2010, 01, 26, 14, 31, 59)
+        account_id = d.Timestamp(2010, 1, 26, 14, 31, 59)
         account_no = 20
         balance = 1.2
         opened_at_time = d.Time(13, 59, 59)
@@ -209,7 +214,8 @@ class SqliteTestBase(IntegrationTestBase):
         cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
                "STUFF) values (?, ?, ?, ?)"
-        stuff = self.dbapi.Binary('abcdef')
+        binary_stuff = 'abcdef'.encode('UTF-8')
+        stuff = self.dbapi.Binary(binary_stuff)
         parms = ('2009-09-11 14:15:22.123450', 20, 13.1, stuff)
         cursor.execute(stmt, parms)
         stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
@@ -218,7 +224,7 @@ class SqliteTestBase(IntegrationTestBase):
         result = cursor.fetchone()
         cursor.close()
         value = result[0]
-        self.assertEqual(value, buffer('abcdef'))
+        self.assertEqual(value, memoryview(binary_stuff))
 
 @unittest.skipIf(is_jython(), "requires python")
 class SqlitePyTest(SqliteTestBase, unittest.TestCase):

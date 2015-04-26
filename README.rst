@@ -8,7 +8,7 @@
 .. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
     :target: https://coveralls.io/r/baztian/jaydebeapi
 
-.. image:: https://img.shields.io/badge/python-2.6,_2.7-blue.svg
+.. image:: https://img.shields.io/badge/python-2.6,_2.7,_3.4-blue.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi
 
 .. image:: https://img.shields.io/badge/jython-2.5.3,_2.7--rc1-blue.svg
@@ -168,6 +168,9 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Python 3 support (requires JPype1 >= 0.6.0).
+
 - 0.1.6 - 2015-04-10
 
   - Fix Jython handling of Java exceptions that don't subclass python Exception

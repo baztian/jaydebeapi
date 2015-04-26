@@ -21,13 +21,46 @@ __version_info__ = (0, 1, 6)
 __version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime
-import exceptions
 import glob
 import os
 import time
 import re
 import sys
 import warnings
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    # Ideas stolen from the six python 2 and 3 compatibility layer
+    def exec_(_code_, _globs_=None, _locs_=None):
+        """Execute code in a namespace."""
+        if _globs_ is None:
+            frame = sys._getframe(1)
+            _globs_ = frame.f_globals
+            if _locs_ is None:
+                _locs_ = frame.f_locals
+            del frame
+        elif _locs_ is None:
+            _locs_ = _globs_
+        exec("""exec _code_ in _globs_, _locs_""")
+
+    exec_("""def reraise(tp, value, tb=None):
+    raise tp, value, tb
+""")
+else:
+    def reraise(tp, value, tb=None):
+        if value is None:
+            value = tp()
+        else:
+            value = tp(value)
+        if tb:
+            raise value.with_traceback(tb)
+        raise value
+
+if PY2:
+    string_type = basestring
+else:
+    string_type = str
 
 # Mapping from java.sql.Types attribute name to attribute value
 _jdbc_name_to_const = None
@@ -48,7 +81,7 @@ def _handle_sql_exception_jython():
         exc_type = DatabaseError
     else:
         exc_type = InterfaceError
-    raise exc_type, exc_info[1], exc_info[2]
+    reraise(exc_type, exc_info[1], exc_info[2])
 
 def _jdbc_connect_jython(jclassname, jars, libs, *args):
     if _jdbc_name_to_const is None:
@@ -112,7 +145,7 @@ def _handle_sql_exception_jpype():
         exc_type = DatabaseError
     else:
         exc_type = InterfaceError
-    raise exc_type, exc_info[1], exc_info[2]
+    reraise(exc_type, exc_info[1], exc_info[2])
     
 def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
     import jpype
@@ -191,7 +224,7 @@ class DBAPITypeObject(object):
         self.values = values
         for type_name in values:
             if type_name in DBAPITypeObject._mappings:
-                raise ValueError, "Non unique mapping for type '%s'" % type_name
+                raise ValueError("Non unique mapping for type '%s'" % type_name)
             DBAPITypeObject._mappings[type_name] = self
     def __cmp__(self, other):
         if other in self.values:
@@ -239,10 +272,10 @@ DATETIME = DBAPITypeObject('TIMESTAMP')
 ROWID = DBAPITypeObject('ROWID')
 
 # DB-API 2.0 Module Interface Exceptions
-class Error(exceptions.StandardError):
+class Error(Exception):
     pass
 
-class Warning(exceptions.StandardError):
+class Warning(Exception):
     pass
 
 class InterfaceError(Error):
@@ -311,15 +344,15 @@ def connect(jclassname, driver_args, jars=None, libs=None):
     libs: Dll/so filenames or sequence of dlls/sos used as shared
           library by the JDBC driver
     """
-    if isinstance(driver_args, basestring):
+    if isinstance(driver_args, string_type):
         driver_args = [ driver_args ]
     if jars:
-        if isinstance(jars, basestring):
+        if isinstance(jars, string_type):
             jars = [ jars ]
     else:
         jars = []
     if libs:
-        if isinstance(libs, basestring):
+        if isinstance(libs, string_type):
             libs = [ libs ]
     else:
         libs = []
@@ -347,7 +380,7 @@ class Connection(object):
 
     def close(self):
         if self._closed:
-            raise Error
+            raise Error()
         self.jconn.close()
         self._closed = True
 
@@ -436,7 +469,7 @@ class Cursor(object):
 
     def execute(self, operation, parameters=None):
         if self._connection._closed:
-            raise Error
+            raise Error()
         if not parameters:
             parameters = ()
         self._close_last()
@@ -467,7 +500,7 @@ class Cursor(object):
 
     def fetchone(self):
         if not self._rs:
-            raise Error
+            raise Error()
         if not self._rs.next():
             return None
         row = []
@@ -480,14 +513,14 @@ class Cursor(object):
 
     def fetchmany(self, size=None):
         if not self._rs:
-            raise Error
+            raise Error()
         if size is None:
             size = self.arraysize
         # TODO: handle SQLException if not supported by db
         self._rs.setFetchSize(size)
         rows = []
         row = None
-        for i in xrange(size):
+        for i in range(size):
             row = self.fetchone()
             if row is None:
                 break
@@ -554,7 +587,9 @@ def _java_to_py(java_method):
         java_val = rs.getObject(col)
         if java_val is None:
             return
-        if isinstance(java_val, (basestring, int, long, float, bool)):
+        if PY2 and isinstance(java_val, (string_type, int, long, float, bool)):
+            return java_val
+        elif isinstance(java_val, (string_type, int, float, bool)):
             return java_val
         return getattr(java_val, java_method)()
     return to_py
@@ -567,7 +602,7 @@ def _init_types(types_map):
     global _jdbc_name_to_const
     _jdbc_name_to_const = types_map
     global _jdbc_const_to_name
-    _jdbc_const_to_name = dict((y,x) for x,y in types_map.iteritems())
+    _jdbc_const_to_name = dict((y,x) for x,y in types_map.items())
     _init_converters(types_map)
 
 def _init_converters(types_map):

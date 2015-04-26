@@ -53,7 +53,7 @@ class MockTest(unittest.TestCase):
         try:
             cursor.execute("dummy stmt")
             fail("expected exception")
-        except jaydebeapi.DatabaseError, e:
+        except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
     def test_runtime_exception_on_execute(self):
@@ -62,7 +62,7 @@ class MockTest(unittest.TestCase):
         try:
             cursor.execute("dummy stmt")
             fail("expected exception")
-        except jaydebeapi.InterfaceError, e:
+        except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
 
     def test_sql_exception_on_commit(self):
@@ -70,7 +70,7 @@ class MockTest(unittest.TestCase):
         try:
             self.conn.commit()
             fail("expected exception")
-        except jaydebeapi.DatabaseError, e:
+        except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
     def test_runtime_exception_on_commit(self):
@@ -78,7 +78,7 @@ class MockTest(unittest.TestCase):
         try:
             self.conn.commit()
             fail("expected exception")
-        except jaydebeapi.InterfaceError, e:
+        except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
 
     def test_sql_exception_on_rollback(self):
@@ -86,7 +86,7 @@ class MockTest(unittest.TestCase):
         try:
             self.conn.rollback()
             fail("expected exception")
-        except jaydebeapi.DatabaseError, e:
+        except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
     def test_runtime_exception_on_rollback(self):
@@ -94,5 +94,5 @@ class MockTest(unittest.TestCase):
         try:
             self.conn.rollback()
             fail("expected exception")
-        except jaydebeapi.InterfaceError, e:
+        except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
