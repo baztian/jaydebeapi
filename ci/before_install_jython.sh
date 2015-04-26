@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-JYTHON_JAR=$(./ci/mvnget.sh $JYTHON)
+JYTHON_JAR=$(${TRAVIS_BUILD_DIR}/ci/mvnget.sh $JYTHON)
 java -jar ${JYTHON_JAR} -s -d $HOME/jython
 
 BEFORE_PY_26=$($HOME/jython/bin/jython -c "import sys; print sys.version_info < (2, 6)")
