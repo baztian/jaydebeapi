@@ -168,6 +168,11 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Improved mapping for types BIGINT, BINARY, BLOB, LONGVARBINARY,
+    VARBINARY, LONGVARCHAR, LONGNVARCHAR. (Many thanks
+    @RudolfCardinal)
+
 - 0.2.0 - 2015-04-26
 
   - Python 3 support (requires JPype1 >= 0.6.0).

@@ -36,7 +36,14 @@ class MockTest(unittest.TestCase):
     def test_all_db_api_type_objects_have_valid_mapping(self):
         extra_type_mappings = { 'DATE': 'getDate',
                                 'TIME': 'getTime',
-                                'TIMESTAMP': 'getTimestamp' }
+                                'TIMESTAMP': 'getTimestamp',
+                                'BINARY': 'getString',
+                                'BLOB': 'getString',
+                                'VARBINARY': 'getString',
+                                'LONGVARBINARY': 'getString',
+                                'LONGVARCHAR': 'getCharacterStream',
+                                'LONGNVARCHAR': 'getCharacterStream',
+                                }
         for db_api_type in jaydebeapi.__dict__.values():
             if isinstance(db_api_type, jaydebeapi.DBAPITypeObject):
                 for jsql_type_name in db_api_type.values:

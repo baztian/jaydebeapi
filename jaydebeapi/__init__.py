@@ -20,6 +20,7 @@
 __version_info__ = (0, 2, 0)
 __version__ = ".".join(str(i) for i in __version_info__)
 
+import binascii
 import datetime
 import glob
 import os
@@ -577,10 +578,23 @@ def _to_date(rs, col):
     return d.strftime("%Y-%m-%d")
 
 def _to_binary(rs, col):
-    java_val = rs.getObject(col)
+    java_val = rs.getString(col)
+    if java_val is None:
+        return
+    return binascii.unhexlify(java_val)
+
+def _to_bigstr(rs, col):
+    java_val = rs.getCharacterStream(col)
     if java_val is None:
         return
     return str(java_val)
+
+def _to_bigint(rs, col):
+    java_val = rs.getObject(col)
+    if java_val is None:
+        return
+    v = getattr(java_val, 'toString')()  # TODO: Works around a JPype bug?
+    return int(v)
 
 def _java_to_py(java_method):
     def to_py(rs, col):
@@ -627,6 +641,12 @@ _DEFAULT_CONVERTERS = {
     'TIME': _to_time,
     'DATE': _to_date,
     'BINARY': _to_binary,
+    'BLOB': _to_binary,
+    'VARBINARY': _to_binary,
+    'LONGVARBINARY': _to_binary,
+    'LONGVARCHAR': _to_bigstr,
+    'LONGNVARCHAR': _to_bigstr,
+    'BIGINT': _to_bigint,
     'DECIMAL': _to_double,
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
