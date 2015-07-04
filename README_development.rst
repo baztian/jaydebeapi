@@ -6,6 +6,24 @@ Some notes for development.
 
 .. contents::
 
+Setup test requirements
+=======================
+
+sudo apt-get install maven
+cd mockdriver
+maven install
+
+virtualenv ~/.virtualenvs/jaydebeapi-py26 -p /usr/bin/python2.6
+. ~/.virtualenvs/jaydebeapi-py26/bin/activate
+pip install -r dev-requirements.txt -r requirements-python.txt -r test-requirements.txt jip==0.9.3
+envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip
+jip install org.jaydebeapi:mockdriver:1.0-SNAPSHOT
+jip install org.hsqldb:hsqldb:1.8.0.10
+jip install org.xerial:sqlite-jdbc:3.7.2
+export CLASSPATH=$VIRTUAL_ENV/javalib/*
+python setup.py develop
+python test/testsuite.py
+
 Build a new release
 ===================
 
