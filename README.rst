@@ -9,15 +9,15 @@
     :target: https://coveralls.io/r/baztian/jaydebeapi
 
 .. image:: https://img.shields.io/badge/python-2.6,_2.7,_3.4-blue.svg
-    :target: https://pypi.python.org/pypi/JayDeBeApi
+    :target: https://pypi.python.org/pypi/JayDeBeApi/
 
 .. image:: https://img.shields.io/badge/jython-2.7--rc1-blue.svg
-    :target: https://pypi.python.org/pypi/JayDeBeApi
+    :target: https://pypi.python.org/pypi/JayDeBeApi/
 
-.. image:: https://pypip.in/version/JayDeBeApi/badge.svg
-    :target: https://pypi.python.org/pypi/JayDeBeApi
+.. image:: https://img.shields.io/github/tag/baztian/jaydebeapi.svg
+    :target: https://pypi.python.org/pypi/JayDeBeApi/
 
-.. image:: https://pypip.in/download/JayDeBeApi/badge.svg
+.. image:: https://img.shields.io/pypi/dm/JayDeBeApi.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi/
 
 The JayDeBeApi module allows you to connect from Python code to
