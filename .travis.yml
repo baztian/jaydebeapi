@@ -5,9 +5,9 @@ sudo: false
 
 deploy:
   provider: pypi
-  user: baztian
+  user: cheffe
   password:
-    secure: bUeJtZqKYSckK9nOo3KyURl+xFrs5dq/HyzrybGBpXDRv6tX/LBIxuvo1IPS8sFhkZLmT0XksKwkJ4AMh3SDjw0+wStPLr4HMo+f4cxeL9czl8FRU96wdMq/PMUIduwXUnBYfX3KwEq4udh2PZ8ex8pLdOpJpZdoGCIly7XLpFo=
+    secure: ZQsqnd4Ux3erP0xfLJefJ/90wcJX/L2SfYOZFPbAIwJaX3n9iXf7jOGaT5FzJxLH+c0RJ1varqX0WZo1v0YKRz05IiSCLfZIT3Ia/Cy4nOLLL4a6CFUqzTlO7V1xyKMtQKimWGF5AYTAWvLTPu7cdDeg1YPENrZBYZPvJ/yRiJ4=
   distributions: "sdist bdist_wheel"
   on:
     tags: true
