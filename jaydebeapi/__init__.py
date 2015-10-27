@@ -74,6 +74,35 @@ _java_array_byte = None
 
 _handle_sql_exception = None
 
+_dict_to_properties = None
+
+
+def _check_if_args_contain_properties(args):
+    return len(args) == 2 and isinstance(args[1], dict)
+
+
+def _prepair_arguments_for_driver(args):
+   if _check_if_args_contain_properties(args):
+       args = (args[0], _dict_to_properties(args[1]))
+   return args
+
+
+def _dict_to_properties_jython(some_dict):
+    from java.util import Properties
+    props = Properties()
+    for key in some_dict:
+        props.setProperty(key, some_dict[key])
+    return props
+
+def _dict_to_properties_jpype(some_dict):
+    from jpype import JPackage
+    java_utils = JPackage('java.util')
+    props = java_utils.Properties()
+    for key in some_dict:
+        props.setProperty(key, some_dict[key])
+    return props
+
+
 def _handle_sql_exception_jython():
     from java.sql import SQLException
     exc_info = sys.exc_info()
@@ -114,6 +143,7 @@ def _jdbc_connect_jython(jclassname, jars, libs, *args):
         _jython_set_classpath(jars)
         Class.forName(jclassname).newInstance()
     from java.sql import DriverManager
+    args = _prepair_arguments_for_driver(args)
     return DriverManager.getConnection(*args)
 
 def _jython_set_classpath(jars):
@@ -136,6 +166,9 @@ def _prepare_jython():
     _jdbc_connect = _jdbc_connect_jython
     global _handle_sql_exception
     _handle_sql_exception = _handle_sql_exception_jython
+    global _dict_to_properties
+    _dict_to_properties = _dict_to_properties_jython
+
 
 def _handle_sql_exception_jpype():
     import jpype
@@ -180,6 +213,7 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
             return jpype.JArray(jpype.JByte, 1)(data)
     # register driver for DriverManager
     jpype.JClass(jclassname)
+    driver_args = _prepair_arguments_for_driver(driver_args)
     return jpype.java.sql.DriverManager.getConnection(*driver_args)
 
 def _get_classpath():
@@ -206,6 +240,9 @@ def _prepare_jpype():
     _jdbc_connect = _jdbc_connect_jpype
     global _handle_sql_exception
     _handle_sql_exception = _handle_sql_exception_jpype
+    global _dict_to_properties
+    _dict_to_properties = _dict_to_properties_jpype
+
 
 if sys.platform.lower().startswith('java'):
     _prepare_jython()
