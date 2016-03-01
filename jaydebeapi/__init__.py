@@ -257,7 +257,7 @@ TEXT = DBAPITypeObject('CLOB', 'LONGVARCHAR', 'LONGNVARCHAR', 'NCLOB', 'SQLXML')
 
 BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT')
+NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT', 'TINYINT')
 
 FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
 
@@ -627,11 +627,17 @@ _DEFAULT_CONVERTERS = {
     'TIME': _to_time,
     'DATE': _to_date,
     'BINARY': _to_binary,
+    'BLOB': _to_binary,
+    'LONGVARBINARY': _to_binary,
+    'VARBINARY': _to_binary,
     'DECIMAL': _to_double,
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
     'FLOAT': _to_double,
+    'REAL': _to_double,
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
+    'BIGINT': _to_int,
+    'TINYINT': _to_int,
     'BOOLEAN': _java_to_py('booleanValue'),
 }
