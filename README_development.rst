@@ -6,9 +6,10 @@ Some notes for development.
 
 .. contents::
 
-Setup test requirements
+Running tests
 =======================
-::
+1. Setup requirements. ::
+
      sudo apt-get install maven
      cd mockdriver
      maven install
@@ -22,6 +23,9 @@ Setup test requirements
      jip install org.xerial:sqlite-jdbc:3.7.2
      export CLASSPATH=$VIRTUAL_ENV/javalib/*
      python setup.py develop
+
+2. Running tests. ::
+
      python test/testsuite.py
 
 Build a new release
