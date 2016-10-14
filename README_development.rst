@@ -12,7 +12,7 @@ Running tests
 
      sudo apt-get install maven
      cd mockdriver
-     maven install
+     mvn install
 
      virtualenv ~/.virtualenvs/jaydebeapi-py26 -p /usr/bin/python2.6
      . ~/.virtualenvs/jaydebeapi-py26/bin/activate
