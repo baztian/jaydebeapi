@@ -77,12 +77,12 @@ _handle_sql_exception = None
 _dict_to_properties = None
 
 
-def _check_if_args_contain_properties(args):
+def _do_args_contain_properties(args):
     return len(args) == 2 and isinstance(args[1], dict)
 
 
 def _prepair_arguments_for_driver(args):
-   if _check_if_args_contain_properties(args):
+   if _do_args_contain_properties(args):
        args = (args[0], _dict_to_properties(args[1]))
    return args
 
