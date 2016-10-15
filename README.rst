@@ -100,6 +100,28 @@ Here is an example:
 >>> curs.fetchall()
 [(1, u'John')]
 
+Also it's possible to make connections with additional attributes.
+For example, you can specify there your domain name.
+You can read about this in `java docs <https://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html#getConnection(java.lang.String,%20java.util.Properties>`_
+
+>>> import jaydebeapi
+>>> connection_props = {'user':'SA', 'password':''}
+>>> conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
+...                           ('jdbc:hsqldb:mem:.', connection_props),
+...                           '/path/to/hsqldb.jar',)
+>>> curs = conn.cursor()
+>>> curs.execute('create table CUSTOMER'
+...                '("CUST_ID" INTEGER not null,'
+...                ' "NAME" VARCHAR not null,'
+...                ' primary key ("CUST_ID"))'
+...             )
+>>> curs.execute("insert into CUSTOMER values (1, 'John')")
+>>> curs.execute("select * from CUSTOMER")
+>>> curs.fetchall()
+[(1, u'John')]
+
+
+
 If you're having trouble getting this work check if your ``JAVA_HOME``
 environmentvariable is set correctly. For example I have to set it on
 my Ubuntu machine like this ::
