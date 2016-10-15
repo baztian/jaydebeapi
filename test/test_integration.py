@@ -240,7 +240,6 @@ class SqlitePyTest(SqliteTestBase, unittest.TestCase):
         """Time type not supported by PySqlite"""
 
 class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
-
     def connect(self):
         #http://bitbucket.org/xerial/sqlite-jdbc
         # sqlite-jdbc-3.7.2.jar
@@ -270,6 +269,19 @@ class HsqldbTest(IntegrationTestBase, unittest.TestCase):
         driver, driver_args = 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.',
                                                         'SA', '']
         return jaydebeapi, jaydebeapi.connect(driver, driver_args)
+
+    def setUpSql(self):
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_hsqldb.sql'))
+        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
+
+class HsqldbDictParamsTest(IntegrationTestBase, unittest.TestCase):
+    def connect(self):
+        # http://hsqldb.org/
+        # hsqldb.jar
+        driver = 'org.hsqldb.jdbcDriver'
+        url = 'jdbc:hsqldb:mem:.'
+        info = {'user':'SA', 'password':''}
+        return jaydebeapi, jaydebeapi.connect(driver, (url, info))
 
     def setUpSql(self):
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_hsqldb.sql'))
