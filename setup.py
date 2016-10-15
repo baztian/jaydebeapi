@@ -27,7 +27,7 @@ if not sys.platform.lower().startswith('java'):
 setup(
     #basic package data
     name = 'JayDeBeApi',
-    version = '0.2.0',
+    version = '0.2.1',
     author = 'Bastian Bowe',
     author_email = 'bastian.dev@gmail.com',
     license = 'GNU LGPL',

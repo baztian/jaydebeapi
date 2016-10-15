@@ -166,6 +166,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 0.2.1 - 2016-10-16
   - `Connection with properties <https://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html#getConnection(java.lang.String,%20java.util.Properties)>`_ support.
 - 0.2.0 - 2015-04-26
 
