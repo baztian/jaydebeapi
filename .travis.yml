@@ -23,6 +23,7 @@ env:
     - TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
     - TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - TESTNAME=test_integration.SqliteXerialTest JDBC_DRIVER=org.xerial:sqlite-jdbc:3.7.2
+    - TESTNAME=test_integration.HsqldbDictParamsTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
 
 matrix:
   include:
