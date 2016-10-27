@@ -52,3 +52,4 @@ script:
 
 after_success:
   - if [ -z "$JYTHON" ]; then coveralls ;fi
+
