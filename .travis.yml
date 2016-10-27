@@ -19,8 +19,6 @@ python:
   - '3.4'
 
 env:
-  - JYTHON=true
-  - JYTHON=false
   matrix:
     - TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
     - TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
@@ -37,9 +35,6 @@ matrix:
       env: JYTHON=org.python:jython-installer:2.7-rc1 TESTNAME=test_integration.HsqldbDictParamsTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - python: 2.7
       env: JYTHON=org.python:jython-installer:2.7-rc1 TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
-  exclude:
-    - python: 2.6
-      env: JYTHON=true
 
 before_install:
   - ci/before_install.sh
@@ -50,8 +45,6 @@ install:
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
   - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
-
-before_script: if [ "$JYTHON" == "true" ]; then export PYTHON_EXE=jython; jython -c "print ''"; else export PYTHON_EXE=python; fi
 
 script:
   - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
