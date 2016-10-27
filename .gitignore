@@ -6,6 +6,7 @@
 .ropeproject/globalnames
 .ropeproject/history
 .ropeproject/objectdb
+.idea
 *.bak
 *~
 mem.*
