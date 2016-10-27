@@ -47,7 +47,7 @@ install:
   - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
 
 script:
-  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
+  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="$HOME/jython/bin/jython "$VIRTUAL_ENV"/bin/coverage run --source jaydebeapi" ;fi
   - $PY test/testsuite.py $TESTNAME
 
 after_success:
