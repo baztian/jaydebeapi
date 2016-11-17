@@ -15,15 +15,14 @@ deploy:
 
 python:
   - '2.6'
-  #- '2.7'
-  #- '3.4'
+#  - '2.7'
+#  - '3.4'
 
 env:
   matrix:
     - TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
     - TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - TESTNAME=test_integration.SqliteXerialTest JDBC_DRIVER=org.xerial:sqlite-jdbc:3.7.2
-    - TESTNAME=test_integration.HsqldbDictParamsTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
 
 matrix:
   include:
@@ -31,8 +30,6 @@ matrix:
       env: TESTNAME=test_integration.SqlitePyTest
     - python: 2.7
       env: JYTHON=org.python:jython-installer:2.7-rc1 TESTNAME=test_integration.HsqldbTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
-    - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.7-rc1 TESTNAME=test_integration.HsqldbDictParamsTest JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
     - python: 2.7
       env: JYTHON=org.python:jython-installer:2.7-rc1 TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
 
@@ -43,13 +40,12 @@ install:
   - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn install) ;fi
   - if [ -n "$JDBC_DRIVER" ]; then envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip && pip install jip==0.9.3 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
   - source $HOME/myvirtualenv/bin/activate
-  - if [ -z "$JYTHON" ]; then pip install coveralls ; else $HOME/jython/bin/pip install coverage==3.7.1 ;fi
+  - pip install -e .
+  - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
 
 script:
-  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="$HOME/jython/bin/jython $HOME/jython/bin/coverage run --source jaydebeapi" ;fi
+  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
   - $PY test/testsuite.py $TESTNAME
 
 after_success:
-  #- if [ -z "$JYTHON" ]; then coveralls ;fi
-  - coveralls
-
+  - if [ -z "$JYTHON" ]; then coveralls ;fi
