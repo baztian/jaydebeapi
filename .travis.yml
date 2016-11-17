@@ -41,11 +41,13 @@ install:
   - if [ -n "$JDBC_DRIVER" ]; then envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip && pip install jip==0.9.3 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
-  - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
+  - if [ -z "$JYTHON" ]; then pip install coveralls ; else $HOME/jython/bin/pip install coverage==3.7.1 ;fi
 
 script:
-  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
+  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="$HOME/jython/bin/jython $HOME/jython/bin/coverage run --source jaydebeapi" ;fi
   - $PY test/testsuite.py $TESTNAME
 
 after_success:
-  - if [ -z "$JYTHON" ]; then coveralls ;fi
+  #- if [ -z "$JYTHON" ]; then coveralls ;fi
+  - coveralls
+
