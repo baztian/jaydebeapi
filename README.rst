@@ -100,6 +100,39 @@ Here is an example:
 >>> curs.fetchall()
 [(1, u'John')]
 
+Also it's possible to make connections using attributes dict.
+It allows to pass additional parameters to connection in more comfort way than in connection string.
+ Also it helps with parameters which cannot be passed via url, for example ``accessToken`` for MS SQL server
+ (see `documentation <https://msdn.microsoft.com/en-us/library/ms378988(v=sql.110).aspx>`_).
+You can read more about this in `java docs <https://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html#getConnection(java.lang.String,%20java.util.Properties>`_
+
+Here's an example of connecting to MS SQL Server with Windows domain credentials:
+
+>>> import jaydebeapi
+>>> connection_parameters = {
+...    "user": "DomainUserName",
+...    "password": "DomainPassW0RD!",
+...    "domain": "DOMAINNAME"
+... }
+>>> conn = jaydebeapi.connect('net.sourceforge.jtds.jdbc.Driver',
+...                           ('jdbc:jtds:sqlserver://server:1433/database', connection_parameters),
+...                           '/path/to/jar/jtds-1.2.5.jar',)
+>>> conn.setAutoCommit(False)
+>>> curs = conn.cursor()
+>>> curs.execute('CREATE TABLE Users ('
+...             'id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, '
+...             'Name VARCHAR(200), '
+...             'Location VARCHAR(200) '
+...             ');')
+>>> curs.execute("insert into Users (Name, Location) values ('John', 'North Pole')")
+>>> conn.commit()
+>>>
+>>> curs.execute("select * from Users")
+>>> curs.fetchall()
+[(1, u'John', u'North Pole')]
+
+
+
 If you're having trouble getting this work check if your ``JAVA_HOME``
 environmentvariable is set correctly. For example I have to set it on
 my Ubuntu machine like this ::
@@ -144,6 +177,8 @@ Changelog
 =========
 
 - Next version - unreleased
+- 0.2.1 - 2016-10-16
+  - `Connection with properties <https://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html#getConnection(java.lang.String,%20java.util.Properties)>`_ support.
 - 0.2.0 - 2015-04-26
 
   - Python 3 support (requires JPype1 >= 0.6.0).
