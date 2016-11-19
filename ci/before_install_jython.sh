@@ -9,3 +9,4 @@ $HOME/jython/bin/jython -m ensurepip
 # Install the latest virtualenv compatible with Jython
 # $HOME/jython/bin/pip install virtualenv==1.9.1
 # virtualenv $HOME/myvirtualenv
+ln -s $VIRTUAL_ENV $HOME/myvirtualenv
