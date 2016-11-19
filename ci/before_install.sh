@@ -7,5 +7,9 @@ set -e
 
 if [ -f requirements.txt ]
 then
-    pip install -r requirements.txt
+    if [ $JYTHON ]; then
+        $HOME/jython/bin/pip -r requirements.txt
+    else
+        pip install -r requirements.txt
+    fi
 fi

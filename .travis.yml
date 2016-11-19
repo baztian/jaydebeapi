@@ -42,7 +42,7 @@ install:
   - source $HOME/myvirtualenv/bin/activate
   - if [ $JYTHON ]; then $HOME/jython/bin/pip install -e . ; else pip install -e . ; fi
   - if [ "$JYTHON" ]; then $HOME/jython/bin/pip install coverage==3.7.1 ;fi
-  - if [ -z "$JYTHON" ]; then pip install coveralls ; fi
+  - pip install coveralls
 
 
 script:
