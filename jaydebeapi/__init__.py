@@ -397,10 +397,6 @@ class Connection(object):
         except:
             _handle_sql_exception()
 
-    def execute(self, sql):
-        stmt = self.jconn.createStatement()
-        return stmt.executeQuery(sql)
-
     def rollback(self):
         try:
             self.jconn.rollback()
@@ -481,15 +477,25 @@ class Cursor(object):
     def execute(self, operation, parameters=None):
         if self._connection._closed:
             raise Error()
-        if not parameters:
-            parameters = ()
+
         self._close_last()
-        self._prep = self._connection.jconn.prepareStatement(operation)
-        self._set_stmt_parms(self._prep, parameters)
-        try:
-            is_rs = self._prep.execute()
-        except:
-            _handle_sql_exception()
+
+        if parameters == None:
+            self._prep = self._connection.jconn.createStatement()
+
+            try:
+                is_rs = self._prep.execute(operation)
+            except:
+                _handle_sql_exception()
+        else:
+            self._prep = self._connection.jconn.prepareStatement(operation)
+            self._set_stmt_parms(self._prep, parameters)
+
+            try:
+                is_rs = self._prep.execute()
+            except:
+                _handle_sql_exception()
+
         if is_rs:
             self._rs = self._prep.getResultSet()
             self._meta = self._rs.getMetaData()
