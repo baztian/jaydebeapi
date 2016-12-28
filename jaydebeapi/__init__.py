@@ -7,12 +7,12 @@
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # JayDeBeApi is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
@@ -83,7 +83,7 @@ def _handle_sql_exception_jython():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jython(jclassname, jars, libs, *args):
+def _jdbc_connect_jython(jclassname, jars, libs, props, *args):
     if _jdbc_name_to_const is None:
         from java.sql import Types
         types = Types
@@ -146,8 +146,8 @@ def _handle_sql_exception_jpype():
     else:
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
-    
-def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
+
+def _jdbc_connect_jpype(jclassname, jars, libs, props, *driver_args):
     import jpype
     if not jpype.isJVMStarted():
         args = []
@@ -180,6 +180,13 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
             return jpype.JArray(jpype.JByte, 1)(data)
     # register driver for DriverManager
     jpype.JClass(jclassname)
+
+    if props is not None:
+        jprops = jpype.java.util.Properties()
+        for k, v in props.iteritems():
+            jprops.put(k, v)
+        return jpype.java.sql.DriverManager.getConnection(driver_args[0], jprops)
+
     return jpype.java.sql.DriverManager.getConnection(*driver_args)
 
 def _get_classpath():
@@ -330,7 +337,7 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, driver_args, jars=None, libs=None):
+def connect(jclassname, driver_args, jars=None, libs=None, props=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
@@ -356,7 +363,7 @@ def connect(jclassname, driver_args, jars=None, libs=None):
             libs = [ libs ]
     else:
         libs = []
-    jconn = _jdbc_connect(jclassname, jars, libs, *driver_args)
+    jconn = _jdbc_connect(jclassname, jars, libs, props, *driver_args)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
@@ -470,15 +477,25 @@ class Cursor(object):
     def execute(self, operation, parameters=None):
         if self._connection._closed:
             raise Error()
-        if not parameters:
-            parameters = ()
+
         self._close_last()
-        self._prep = self._connection.jconn.prepareStatement(operation)
-        self._set_stmt_parms(self._prep, parameters)
-        try:
-            is_rs = self._prep.execute()
-        except:
-            _handle_sql_exception()
+
+        if parameters == None:
+            self._prep = self._connection.jconn.createStatement()
+
+            try:
+                is_rs = self._prep.execute(operation)
+            except:
+                _handle_sql_exception()
+        else:
+            self._prep = self._connection.jconn.prepareStatement(operation)
+            self._set_stmt_parms(self._prep, parameters)
+
+            try:
+                is_rs = self._prep.execute()
+            except:
+                _handle_sql_exception()
+
         if is_rs:
             self._rs = self._prep.getResultSet()
             self._meta = self._rs.getMetaData()
