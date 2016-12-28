@@ -213,7 +213,6 @@ class IntegrationTestBase(object):
         try:
             cursor.execute("dummy stmt")
         except jaydebeapi.DatabaseError as e:
-            print str(e)
             self.assertEquals(str(e).split(" ")[0], "java.sql.SQLException:")
         except self.conn.OperationalError as e:
             self.assertEquals("syntax" in str(e), True)
