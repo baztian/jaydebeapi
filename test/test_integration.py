@@ -212,14 +212,14 @@ class IntegrationTestBase(object):
         try:
             cursor.execute("dummy stmt")
         except jaydebeapi.DatabaseError as e:
-            self.assertEquals(str(e), "java.sql.SQLException: expected")
+            self.assertEquals(str(e).split(" ")[0], "java.sql.SQLException:")
 
     def test_sql_exception_on_prepared_execute(self):
         cursor = self.conn.cursor()
         try:
             cursor.execute("dummy stmt ?", (18,))
         except jaydebeapi.DatabaseError as e:
-            self.assertEquals(str(e), "java.sql.SQLException: expected")
+            self.assertEquals(str(e).split(" ")[0], "java.sql.SQLException:")
 
 class SqliteTestBase(IntegrationTestBase):
 
