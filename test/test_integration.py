@@ -18,6 +18,7 @@
 # <http://www.gnu.org/licenses/>.
 
 import jaydebeapi
+from jaydebeapi import OperationalError
 
 import os
 import sys
@@ -212,7 +213,10 @@ class IntegrationTestBase(object):
         try:
             cursor.execute("dummy stmt")
         except jaydebeapi.DatabaseError as e:
+            print str(e)
             self.assertEquals(str(e).split(" ")[0], "java.sql.SQLException:")
+        except self.conn.OperationalError as e:
+            self.assertEquals("syntax" in str(e), True)
 
 class SqliteTestBase(IntegrationTestBase):
 
