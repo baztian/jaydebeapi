@@ -72,22 +72,25 @@ the ``connect`` method. This gives you a DB-API_ conform connection to
 the database.
 
 The first argument to ``connect`` is the name of the Java driver
-class. Then you can supply a single argument or a sequence of
-arguments that are internally passed to the Java
-``DriverManager.getConnection`` method. Usually this is the JDBC
-connection URL. See the Javadoc of ``DriverManager`` class for
-details.
+class. The second argument is a string with the JDBC connection
+URL. Third you can optionally supply a sequence consisting of user and
+password or alternatively a dictionary containing arguments that are
+internally passed as properties to the Java
+``DriverManager.getConnection`` method. See the Javadoc of
+``DriverManager`` class for details.
 
-The next parameter to ``connect`` is optional and specifies the
-jar-Files of the driver if your classpath isn't set up sufficiently
-yet. The classpath set in ``CLASSPATH`` environment variable will be
-honored. See the documentation of your Java runtime environment.
+The next parameter to ``connect`` is optional as well and specifies
+the jar-Files of the driver if your classpath isn't set up
+sufficiently yet. The classpath set in ``CLASSPATH`` environment
+variable will be honored. See the documentation of your Java runtime
+environment.
 
 Here is an example:
 
 >>> import jaydebeapi
 >>> conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
-...                           ['jdbc:hsqldb:mem:.', 'SA', ''],
+...                           'jdbc:hsqldb:mem:.',
+...                           ['SA', ''],
 ...                           '/path/to/hsqldb.jar',)
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
@@ -144,6 +147,11 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Allow for db properties to be passed to the connect
+    method. *Probably incompatible to code based on previous
+    versions.* See documentation of the connect method.
+
 - 0.2.0 - 2015-04-26
 
   - Python 3 support (requires JPype1 >= 0.6.0).

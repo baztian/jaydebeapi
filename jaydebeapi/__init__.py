@@ -83,7 +83,7 @@ def _handle_sql_exception_jython():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jython(jclassname, jars, libs, *args):
+def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
     if _jdbc_name_to_const is None:
         from java.sql import Types
         types = Types
@@ -114,7 +114,15 @@ def _jdbc_connect_jython(jclassname, jars, libs, *args):
         _jython_set_classpath(jars)
         Class.forName(jclassname).newInstance()
     from java.sql import DriverManager
-    return DriverManager.getConnection(*args)
+    if isinstance(driver_args, dict):
+        from java.util import Properties
+        info = Properties()
+        for k, v in driver_args.iteritems():
+            info.setProperty(k, v)
+        dargs = [ info ]
+    else:
+        dargs = driver_args
+    return DriverManager.getConnection(url, *dargs)
 
 def _jython_set_classpath(jars):
     '''
@@ -147,7 +155,7 @@ def _handle_sql_exception_jpype():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
     
-def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
+def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     import jpype
     if not jpype.isJVMStarted():
         args = []
@@ -180,7 +188,15 @@ def _jdbc_connect_jpype(jclassname, jars, libs, *driver_args):
             return jpype.JArray(jpype.JByte, 1)(data)
     # register driver for DriverManager
     jpype.JClass(jclassname)
-    return jpype.java.sql.DriverManager.getConnection(*driver_args)
+    if isinstance(driver_args, dict):
+        Properties = jpype.java.util.Properties
+        info = Properties()
+        for k, v in driver_args.iteritems():
+            info.setProperty(k, v)
+        dargs = [ info ]
+    else:
+        dargs = driver_args
+    return jpype.java.sql.DriverManager.getConnection(url, *dargs)
 
 def _get_classpath():
     """Extract CLASSPATH from system environment as JPype doesn't seem
@@ -330,15 +346,18 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, driver_args, jars=None, libs=None):
+def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
     jclassname: Full qualified Java class name of the JDBC driver.
-    driver_args: Argument or sequence of arguments to be passed to the
-           Java DriverManager.getConnection method. Usually the
-           database URL. See
-           http://docs.oracle.com/javase/6/docs/api/java/sql/DriverManager.html
+    url: Database url as required by the JDBC driver.
+    driver_args: Dictionary or sequence of arguments to be passed to
+           the Java DriverManager.getConnection method. Usually
+           sequence of username and password for the db. Alternatively
+           a dictionary of connection arguments (where `user` and
+           `password` would probably be included). See
+           http://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html
            for more details
     jars: Jar filename or sequence of filenames for the JDBC driver
     libs: Dll/so filenames or sequence of dlls/sos used as shared
@@ -346,6 +365,8 @@ def connect(jclassname, driver_args, jars=None, libs=None):
     """
     if isinstance(driver_args, string_type):
         driver_args = [ driver_args ]
+    if not driver_args:
+       driver_args = []
     if jars:
         if isinstance(jars, string_type):
             jars = [ jars ]
@@ -356,7 +377,7 @@ def connect(jclassname, driver_args, jars=None, libs=None):
             libs = [ libs ]
     else:
         libs = []
-    jconn = _jdbc_connect(jclassname, jars, libs, *driver_args)
+    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object

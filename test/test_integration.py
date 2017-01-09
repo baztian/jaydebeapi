@@ -244,7 +244,7 @@ class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
     def connect(self):
         #http://bitbucket.org/xerial/sqlite-jdbc
         # sqlite-jdbc-3.7.2.jar
-        driver, driver_args = 'org.sqlite.JDBC', 'jdbc:sqlite::memory:'
+        driver, url = 'org.sqlite.JDBC', 'jdbc:sqlite::memory:'
         # db2jcc
         # driver, driver_args = 'com.ibm.db2.jcc.DB2Driver', \
         #    ['jdbc:db2://4.100.73.81:50000/db2t', 'user', 'passwd']
@@ -256,7 +256,7 @@ class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
         # driver, driver_args = 'oracle.jdbc.OracleDriver', \
         #     ['jdbc:oracle:thin:@//hh-cluster-scan:1521/HH_TPP',
         #      'user', 'passwd']
-        return jaydebeapi, jaydebeapi.connect(driver, driver_args)
+        return jaydebeapi, jaydebeapi.connect(driver, url)
 
     @unittest.skipUnless(is_jython(), "don't know how to support blob")
     def test_execute_type_blob(self):
@@ -267,10 +267,25 @@ class HsqldbTest(IntegrationTestBase, unittest.TestCase):
     def connect(self):
         # http://hsqldb.org/
         # hsqldb.jar
-        driver, driver_args = 'org.hsqldb.jdbcDriver', ['jdbc:hsqldb:mem:.',
-                                                        'SA', '']
-        return jaydebeapi, jaydebeapi.connect(driver, driver_args)
+        driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
+                                     'jdbc:hsqldb:mem:.',
+                                     ['SA', ''] )
+        return jaydebeapi, jaydebeapi.connect(driver, url, driver_args)
 
     def setUpSql(self):
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_hsqldb.sql'))
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
+
+class PropertiesDriverArgsPassingTest(unittest.TestCase):
+
+    def test_connect_with_sequence(self):
+        driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
+                                     'jdbc:hsqldb:mem:.',
+                                     ['SA', ''] )
+        jaydebeapi.connect(driver, url, driver_args)
+
+    def test_connect_with_properties(self):
+        driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
+                                     'jdbc:hsqldb:mem:.',
+                                     {'user': 'SA', 'password': '' } )
+        jaydebeapi.connect(driver, url, driver_args)
