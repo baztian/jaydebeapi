@@ -153,6 +153,8 @@ Changelog
     versions.* See documentation of the connect method. (Thanks
     @testlnord for you efforts and the patience.)
 
+  - New major version due to possible api incompatibility.
+
 - 0.2.0 - 2015-04-26
 
   - Python 3 support (requires JPype1 >= 0.6.0).
