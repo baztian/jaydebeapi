@@ -117,7 +117,7 @@ def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
     if isinstance(driver_args, dict):
         from java.util import Properties
         info = Properties()
-        for k, v in driver_args.iteritems():
+        for k, v in driver_args.items():
             info.setProperty(k, v)
         dargs = [ info ]
     else:
@@ -191,7 +191,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     if isinstance(driver_args, dict):
         Properties = jpype.java.util.Properties
         info = Properties()
-        for k, v in driver_args.iteritems():
+        for k, v in driver_args.items():
             info.setProperty(k, v)
         dargs = [ info ]
     else:
