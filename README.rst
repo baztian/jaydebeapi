@@ -150,7 +150,8 @@ Changelog
 
   - Allow for db properties to be passed to the connect
     method. *Probably incompatible to code based on previous
-    versions.* See documentation of the connect method.
+    versions.* See documentation of the connect method. (Thanks
+    @testlnord for you efforts and the patience.)
 
 - 0.2.0 - 2015-04-26
 
