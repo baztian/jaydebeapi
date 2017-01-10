@@ -147,6 +147,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.0.0 - 2017-01-10
 
   - Allow for db properties to be passed to the connect
     method. *Probably incompatible to code based on previous
