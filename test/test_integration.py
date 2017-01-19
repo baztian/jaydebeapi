@@ -249,6 +249,9 @@ class SqlitePyTest(SqliteTestBase, unittest.TestCase):
     def test_execute_type_time(self):
         """Time type not supported by PySqlite"""
 
+    def test_sql_exception_on_execute(self):
+        """Additional named parameters not supported by PySqlite"""
+
 class SqliteXerialTest(SqliteTestBase, unittest.TestCase):
 
     def connect(self):
