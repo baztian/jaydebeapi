@@ -2,6 +2,7 @@ package org.jaydebeapi.mockdriver;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -25,16 +26,22 @@ public abstract class MockConnection implements Connection {
 
     public final void mockExceptionOnExecute(String className, String exceptionMessage) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+        Statement mockStatement = Mockito.mock(Statement.class);
         Throwable exception = createException(className, exceptionMessage);
         Mockito.when(mockPreparedStatement.execute()).thenThrow(exception);
+        Mockito.when(mockStatement.execute(Mockito.anyString())).thenThrow(exception);
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+        Mockito.when(this.createStatement()).thenReturn(mockStatement);
     }
 
     public final void mockType(String sqlTypesName) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+        Statement mockStatement = Mockito.mock(Statement.class);
         Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
+        Mockito.when(mockStatement.execute(Mockito.anyString())).thenReturn(true);
         mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for type " + sqlTypesName + ")");
         Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
+        Mockito.when(mockStatement.getResultSet()).thenReturn(mockResultSet);
         Mockito.when(mockResultSet.next()).thenReturn(true);
         ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
         Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
@@ -42,6 +49,7 @@ public abstract class MockConnection implements Connection {
         int sqlTypeCode = extractTypeCodeForName(sqlTypesName);
         Mockito.when(mockMetaData.getColumnType(1)).thenReturn(sqlTypeCode);
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+        Mockito.when(this.createStatement()).thenReturn(mockStatement);
     }
 
     public final ResultSet verifyResultSet() {
