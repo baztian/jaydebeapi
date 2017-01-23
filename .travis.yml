@@ -46,7 +46,7 @@ install:
 script:
   - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
   - $PY test/testsuite.py $TESTNAME
-  - if [ "$JDBC_DRIVER" == "org.hsqldb:hsqldb:1.8.0.10" ] ; then $PY -m doctest README.rst ;fi
+  - if [ "$JDBC_DRIVER" == "org.hsqldb:hsqldb:1.8.0.10" ] ; then $PY test/doctests.py ;fi
 
 after_success:
   - if [ -z "$JYTHON" ]; then coveralls ;fi

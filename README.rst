@@ -87,9 +87,6 @@ environment.
 
 Here is an example:
 
-..
-    >>> from __future__ import unicode_literals
-
 >>> import jaydebeapi
 >>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
