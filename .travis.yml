@@ -46,6 +46,7 @@ install:
 script:
   - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
   - $PY test/testsuite.py $TESTNAME
+  - $PY -m doctest README.rst
 
 after_success:
   - if [ -z "$JYTHON" ]; then coveralls ;fi
