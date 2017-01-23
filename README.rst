@@ -107,6 +107,7 @@ Here is an example:
 
 An alternative way to establish connection using connection
 properties:
+
 >>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
 ...                           {'user': "SA", 'password': "",
