@@ -88,10 +88,10 @@ environment.
 Here is an example:
 
 >>> import jaydebeapi
->>> conn = jaydebeapi.connect('org.hsqldb.jdbcDriver',
-...                           'jdbc:hsqldb:mem:.',
-...                           ['SA', ''],
-...                           '/path/to/hsqldb.jar',)
+>>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
+...                           "jdbc:hsqldb:mem:.",
+...                           ["SA", ""],
+...                           "/path/to/hsqldb.jar",)
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
 ...                '("CUST_ID" INTEGER not null,'
@@ -102,12 +102,24 @@ Here is an example:
 >>> curs.execute("select * from CUSTOMER")
 >>> curs.fetchall()
 [(1, u'John')]
+>>> curs.close()
+>>> conn.close()
+
+An alternative way to establish connection using connection
+properties:
+
+>>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
+...                           "jdbc:hsqldb:mem:.",
+...                           {'user': "SA", 'password': "",
+...                            'other_property': "foobar"},
+...                           "/path/to/hsqldb.jar",)
+
 
 If you're having trouble getting this work check if your ``JAVA_HOME``
 environmentvariable is set correctly. For example I have to set it on
 my Ubuntu machine like this ::
 
-    $ JAVA_HOME=/usr/lib/jvm/java-6-openjdk python
+    $ JAVA_HOME=/usr/lib/jvm/java-8-openjdk python
 
 Supported databases
 ===================
