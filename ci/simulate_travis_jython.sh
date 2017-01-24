@@ -3,7 +3,7 @@ set -e
 
 export BACKEND=hsqldb
 #export JYTHON=org.python:jython-installer:2.5.3
-export JYTHON=org.python:jython-installer:2.7-rc1
+export JYTHON=org.python:jython-installer:2.7.0
 jip install $JYTHON
 _JIP_HOME=$HOME/.jip
 export HOME=`mktemp -d`
