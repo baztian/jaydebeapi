@@ -50,4 +50,4 @@ script:
 
 after_success:
 # TODO remove hack
-  - if [ -z "$JYTHON" ]; then coveralls ; else deactivate && pip install coveralls && coveralls ; fi
+  - if [ -z "$JYTHON" ]; then coveralls ; else deactivate && source ~/virtualenv/python/${TRAVIS_PYTHON_VERSION}/bin/activate && pip install coveralls && coveralls ; fi
