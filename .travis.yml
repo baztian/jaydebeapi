@@ -49,4 +49,5 @@ script:
   - if [ "$JDBC_DRIVER" == "org.hsqldb:hsqldb:1.8.0.10" ] ; then $PY test/doctests.py ;fi
 
 after_success:
-  - coveralls
+# TODO remove hack
+  - if [ -z "$JYTHON" ]; then coveralls ; else deactivate && pip install coveralls && coveralls fi
