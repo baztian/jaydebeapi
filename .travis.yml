@@ -41,12 +41,12 @@ install:
   - if [ -n "$JDBC_DRIVER" ]; then envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip && pip install jip==0.9.3 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
-  - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
+  - pip install coveralls
 
 script:
-  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
+  - PY="coverage run --source jaydebeapi"
   - $PY test/testsuite.py $TESTNAME
   - if [ "$JDBC_DRIVER" == "org.hsqldb:hsqldb:1.8.0.10" ] ; then $PY test/doctests.py ;fi
 
 after_success:
-  - if [ -z "$JYTHON" ]; then coveralls ;fi
+  - coveralls
