@@ -39,9 +39,10 @@ before_install:
 install:
   - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn install) ;fi
   - if [ -n "$JDBC_DRIVER" ]; then envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip && pip install jip==0.9.3 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
+  - OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
-  - pip install coveralls
+  - pip install coverage==3.7.1
 
 script:
   - PY="coverage run --source jaydebeapi"
@@ -50,4 +51,6 @@ script:
 
 after_success:
 # TODO remove hack
-  - if [ -z "$JYTHON" ]; then coveralls ; else deactivate && source ~/virtualenv/python/${TRAVIS_PYTHON_VERSION}/bin/activate && pip install coveralls && coveralls ; fi
+  - source $OLD_VIRTUAL_ENV/bin/activate
+  - pip install coveralls
+  - coveralls
