@@ -42,7 +42,7 @@ install:
   - OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
-  - pip install coverage==3.7.1
+  - pip install coverage==4.3.4
 
 script:
   - PY="coverage run --source jaydebeapi"
