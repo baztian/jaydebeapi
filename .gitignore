@@ -3,6 +3,7 @@
 *.class
 build/
 dist/
+env/
 .ropeproject/globalnames
 .ropeproject/history
 .ropeproject/objectdb

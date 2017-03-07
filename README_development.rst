@@ -10,21 +10,25 @@ Setup test requirements
 =======================
 
 ::
-    sudo apt-get install python2.7-dev g++ maven
-    cd mockdriver
-    mvn install
+    sudo apt-get install python2.7-dev python3-dev python3-venv g++ maven
+    cd <JAYDEBEAPI_WORKDIR>
+    python3 -m venv env
+    . env/bin/activate
+    pip install -rdev-requirements.txt
 
-    virtualenv ~/.virtualenvs/jaydebeapi-py27 -p /usr/bin/python2.7
-    . ~/.virtualenvs/jaydebeapi-py27/bin/activate
-    pip install -r dev-requirements.txt -r requirements-python-2.7.txt jip==0.9.9
-    envsubst < ci/dot_jip > $VIRTUAL_ENV/.jip
-    jip install org.jaydebeapi:mockdriver:1.0-SNAPSHOT
-    jip install org.hsqldb:hsqldb:1.8.0.10
-    jip install org.xerial:sqlite-jdbc:3.7.2
+    # Install Jython 2.7
+    ci/mvnget.sh org.python:jython-installer:2.7.0
+    java -jar jython-installer-2.7.0.jar && rm jython-installer-2.7.0.jar
+    # add jython to your path
+
+    # run tests for all supported envs
+    tox
+
+    # activate and work on specific env
+    . .tox/py35-driver-mock/bin/activate
     export CLASSPATH=$VIRTUAL_ENV/javalib/*
-    python setup.py develop
     python test/testsuite.py
-
+   
 Build a new release
 ===================
 
@@ -50,7 +54,7 @@ Build a new release
 
 7. Run setuptools to ensure everything is working as expected. ::
 
-     $ python setup.py sdist bdist_wheel upload
+     $ python setup.py sdist bdist_wheel upload -r pypitest
 
 8. Check the files in ``dist/`` for unwanted or missing files.
 
