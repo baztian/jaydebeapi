@@ -37,7 +37,7 @@ before_install:
   - ci/before_install.sh
 
 install:
-  - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn install) ;fi
+  - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn -Dmaven.repo.local=$VIRTUAL_ENV/.m2/repository install) ;fi
   - if [ -n "$JDBC_DRIVER" ]; then python jipconf_subst.py $VIRTUAL_ENV && pip install jip==0.9.3 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
   - source $HOME/myvirtualenv/bin/activate
   - pip install -e .
