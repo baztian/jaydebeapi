@@ -1,8 +1,9 @@
 *.pyc
 /README*.html
 *.class
-/build
-/dist
+build/
+dist/
+env/
 .ropeproject/globalnames
 .ropeproject/history
 .ropeproject/objectdb
@@ -11,6 +12,9 @@
 mem.*
 *.log
 JayDeBeApi.egg-info
-/mockdriver/target
-/mockdriver/.classpath
-/mockdriver/.project
+target/
+.classpath
+.project
+.tox
+*.iml
+.idea/
