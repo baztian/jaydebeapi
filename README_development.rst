@@ -28,7 +28,7 @@ Setup test requirements
     . .tox/py35-driver-mock/bin/activate
     export CLASSPATH=$VIRTUAL_ENV/javalib/*
     python test/testsuite.py
-   
+
 Build a new release
 ===================
 
