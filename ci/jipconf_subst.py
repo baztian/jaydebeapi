@@ -5,7 +5,7 @@ import sys
 
 home=sys.argv[1]
 dist=sys.argv[2]
-with open(path.join(home, '.jip'), "w") as out:
+with open(path.join(home, '.jip_config'), "w") as out:
     print("""[repos:local]
 uri={0}/.m2/repository/
 type=local
