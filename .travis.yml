@@ -19,34 +19,16 @@ python:
   - '3.4'
 
 env:
-  matrix:
-    - TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
-    - TESTNAME="test_integration.HsqldbTest test_integration.PropertiesDriverArgsPassingTest" JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
-    - TESTNAME=test_integration.SqliteXerialTest JDBC_DRIVER=org.xerial:sqlite-jdbc:3.7.2
-
 matrix:
   include:
-    - python: 2.7
-      env: TESTNAME=test_integration.SqlitePyTest
-    - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.7.0 TESTNAME="test_integration.HsqldbTest  test_integration.PropertiesDriverArgsPassingTest" JDBC_DRIVER=org.hsqldb:hsqldb:1.8.0.10
-    - python: 2.7
-      env: JYTHON=org.python:jython-installer:2.7.0 TESTNAME=test_mock JDBC_DRIVER=org.jaydebeapi:mockdriver:1.0-SNAPSHOT
+    - python: 3.4
+      env: JYTHON="org.python;jython-installer;2.7.0"
 
 before_install:
   - ci/before_install.sh
+  - export PATH="$HOME/bin:$PATH"
 
 install:
-  - if [ "$JDBC_DRIVER" == "org.jaydebeapi:mockdriver:1.0-SNAPSHOT" ]; then (cd mockdriver && mvn -Dmaven.repo.local=$VIRTUAL_ENV/.m2/repository install) ;fi
-  - if [ -n "$JDBC_DRIVER" ]; then python ci/jipconf_subst.py $VIRTUAL_ENV $VIRTUAL_ENV && pip install jip==0.9.9 && jip install $JDBC_DRIVER && export CLASSPATH=$VIRTUAL_ENV/javalib/* ;fi # TODO: Fix jip to search for local maven repo without twaking .jip
-  - source $HOME/myvirtualenv/bin/activate
-  - pip install -e .
-  - if [ -z "$JYTHON" ]; then pip install coveralls ;fi
+  - pip install tox-travis
 
-script:
-  - if [ -z "$JYTHON" ]; then PY="coverage run --source jaydebeapi"; else PY="python" ;fi
-  - $PY test/testsuite.py $TESTNAME
-  - if [ "$JDBC_DRIVER" == "org.hsqldb:hsqldb:1.8.0.10" ] ; then $PY test/doctests.py ;fi
-
-after_success:
-  - if [ -z "$JYTHON" ]; then coveralls ;fi
+script: tox
