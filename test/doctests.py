@@ -2,6 +2,7 @@
 """Run doctests."""
 
 import doctest
+import re
 import sys
 
 try:
@@ -26,7 +27,11 @@ def suite():
 
 def main():
     runner = unittest.TextTestRunner()
-    runner.run(suite())
+    result = runner.run(suite())
+    if result.wasSuccessful():
+        return 0
+    else:
+        return 1
 
 if __name__ == '__main__':
     sys.exit(main())
