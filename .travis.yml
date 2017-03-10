@@ -28,6 +28,7 @@ matrix:
 before_install:
   - ci/before_install.sh
   - export PATH="$HOME/bin:$PATH"
+  - export TRAVISHOME="$HOME"
 
 install:
   - pip install coveralls
