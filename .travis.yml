@@ -14,8 +14,8 @@ deploy:
     repo: baztian/jaydebeapi
 
 cache:
+  pip: true
   directories:
-  - $HOME/.cache/pip
   - $TRAVIS_BUILD_DIR/.tox/shared/.m2
   - $HOME/jython
 
