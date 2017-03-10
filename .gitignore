@@ -16,5 +16,6 @@ target/
 .classpath
 .project
 .tox
+.coverage
 *.iml
 .idea/
