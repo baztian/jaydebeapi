@@ -17,11 +17,12 @@ python:
   - '2.6'
   - '2.7'
   - '3.4'
+  - '3.6'
 
 env:
 matrix:
   include:
-    - python: 3.4
+    - python: 3.6
       env: JYTHON=org.python:jython-installer:2.7.0 TOXENV="jython-driver-{hsqldb,mock}"
 
 before_install:
