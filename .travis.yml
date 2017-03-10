@@ -13,6 +13,10 @@ deploy:
     tags: true
     repo: baztian/jaydebeapi
 
+cache:
+  directories:
+  - $TRAVIS_BUILD_DIR/.tox/shared/.m2
+
 python:
   - '2.6'
   - '2.7'
@@ -28,7 +32,6 @@ matrix:
 before_install:
   - ci/before_install.sh
   - export PATH="$HOME/bin:$PATH"
-  - export TRAVISHOME="$HOME"
 
 install:
   - pip install coveralls
