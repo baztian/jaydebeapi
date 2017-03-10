@@ -13,6 +13,11 @@ deploy:
     tags: true
     repo: baztian/jaydebeapi
 
+cache:
+  directories:
+  - $TRAVIS_BUILD_DIR/.tox/shared/.m2
+  - $HOME/jython
+
 python:
   - '2.6'
   - '2.7'
