@@ -22,7 +22,7 @@ env:
 matrix:
   include:
     - python: 3.4
-      env: JYTHON="org.python;jython-installer;2.7.0"
+      env: JYTHON=org.python:jython-installer:2.7.0 TOXENV="jython-driver-{hsqldb,mock}"
 
 before_install:
   - ci/before_install.sh
