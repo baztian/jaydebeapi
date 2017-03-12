@@ -273,7 +273,7 @@ TEXT = DBAPITypeObject('CLOB', 'LONGVARCHAR', 'LONGNVARCHAR', 'NCLOB', 'SQLXML')
 
 BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT')
+NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT', 'TINYINT')
 
 FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
 
@@ -580,22 +580,34 @@ def _to_datetime(rs, col):
     java_val = rs.getTimestamp(col)
     if not java_val:
         return
-    d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
-    d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
-    return str(d)
+    elements = (java_val
+        .toString()
+        .replace('-', ' ')
+        .replace(':', ' ')
+        .replace('.', ' ')
+        .split()
+        )
+    return datetime.datetime(*(int(element) for element in elements))
 
 def _to_time(rs, col):
-    java_val = rs.getTime(col)
+    java_val = rs.getTimestamp(col)
     if not java_val:
         return
-    return str(java_val)
+    elements = (java_val
+        .toString()
+        .split()[1]
+        .replace(':', ' ')
+        .replace('.', ' ')
+        .split()
+        )
+    return datetime.time(*(int(element) for element in elements))
 
 def _to_date(rs, col):
     java_val = rs.getDate(col)
     if not java_val:
         return
-    d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
-    return d.strftime("%Y-%m-%d")
+    elements = java_val.toString().split('-')
+    return datetime.date(*(int(element) for element in elements))
 
 def _to_binary(rs, col):
     java_val = rs.getObject(col)
@@ -648,11 +660,17 @@ _DEFAULT_CONVERTERS = {
     'TIME': _to_time,
     'DATE': _to_date,
     'BINARY': _to_binary,
+    'BLOB': _to_binary,
+    'LONGVARBINARY': _to_binary,
+    'VARBINARY': _to_binary,
     'DECIMAL': _to_double,
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
     'FLOAT': _to_double,
+    'REAL': _to_double,
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
+    'BIGINT': _to_int,
+    'TINYINT': _to_int,
     'BOOLEAN': _java_to_py('booleanValue'),
 }
