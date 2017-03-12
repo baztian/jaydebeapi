@@ -1,27 +1,34 @@
+
 package org.jaydebeapi.mockdriver;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.time.LocalDate;
+
 import org.mockito.Mockito;
 
 public abstract class MockConnection implements Connection {
 
     ResultSet mockResultSet;
 
+
     public final void mockExceptionOnCommit(String className, String exceptionMessage) throws SQLException {
         Throwable exception = createException(className, exceptionMessage);
         Mockito.doThrow(exception).when(this).commit();
     }
 
+
     public final void mockExceptionOnRollback(String className, String exceptionMessage) throws SQLException {
         Throwable exception = createException(className, exceptionMessage);
         Mockito.doThrow(exception).when(this).rollback();
     }
+
 
     public final void mockExceptionOnExecute(String className, String exceptionMessage) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
@@ -29,6 +36,23 @@ public abstract class MockConnection implements Connection {
         Mockito.when(mockPreparedStatement.execute()).thenThrow(exception);
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
     }
+
+
+    public final void mockDateResult(int year, int month, int day) throws SQLException {
+        PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+        Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
+        mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for date)");
+        Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
+        Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
+        Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
+        Date ancientDate = Date.valueOf(LocalDate.of(year, month, day));
+        Mockito.when(mockResultSet.getDate(1)).thenReturn(ancientDate);
+        Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DATE);
+        Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    }
+
 
     public final void mockType(String sqlTypesName) throws SQLException {
         PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
@@ -44,17 +68,20 @@ public abstract class MockConnection implements Connection {
         Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
     }
 
+
     public final ResultSet verifyResultSet() {
         return Mockito.verify(mockResultSet);
     }
 
-    private static Throwable createException(String className, String exceptionMessage)  {
+
+    private static Throwable createException(String className, String exceptionMessage) {
         try {
             return (Throwable) Class.forName(className).getConstructor(String.class).newInstance(exceptionMessage);
         } catch (Exception e) {
             throw new RuntimeException("Couldn't initialize class " + className + ".", e);
         }
     }
+
 
     private static int extractTypeCodeForName(String sqlTypesName) {
         try {

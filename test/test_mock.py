@@ -50,6 +50,13 @@ class MockTest(unittest.TestCase):
                                                                  'getObject'))
                     verify_get(1)
 
+    def test_ancient_date_mapped(self):
+        self.conn.jconn.mockDateResult(1899, 12, 31)
+        cursor = self.conn.cursor()
+        cursor.execute("dummy stmt")
+        result = cursor.fetchone()
+        self.assertEquals(result[0], "1899-12-31")
+
     def test_sql_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.sql.SQLException", "expected")
         cursor = self.conn.cursor()
@@ -58,6 +65,7 @@ class MockTest(unittest.TestCase):
             fail("expected exception")
         except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
+
 
     def test_runtime_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.lang.RuntimeException", "expected")
