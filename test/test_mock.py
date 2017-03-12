@@ -66,7 +66,6 @@ class MockTest(unittest.TestCase):
         except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
-
     def test_runtime_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.lang.RuntimeException", "expected")
         cursor = self.conn.cursor()

@@ -595,8 +595,12 @@ def _to_date(rs, col):
     java_val = rs.getDate(col)
     if not java_val:
         return
-    d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
-    return d.strftime("%Y-%m-%d")
+    # The following code requires Python 3.3+ on dates before year 1900.
+    # d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
+    # return d.strftime("%Y-%m-%d")
+    # Workaround / simpler soltution (see
+    # https://github.com/baztian/jaydebeapi/issues/18):
+    return str(java_val)[:10]
 
 def _to_binary(rs, col):
     java_val = rs.getObject(col)
