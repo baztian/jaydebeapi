@@ -29,6 +29,10 @@ Setup test requirements
     # run tests for all supported envs
     tox
 
+    # execute stuff on specific env (examples)
+    tox -e py3-driver-mock -- python
+    tox -e py3-driver-mock -- python test/testsuite.py test_mock.MockTest.test_sql_exception_on_commit
+
     # activate and work on specific env
     . .tox/py35-driver-mock/bin/activate
     export CLASSPATH=$VIRTUAL_ENV/javalib/*
