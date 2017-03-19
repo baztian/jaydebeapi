@@ -273,7 +273,8 @@ TEXT = DBAPITypeObject('CLOB', 'LONGVARCHAR', 'LONGNVARCHAR', 'NCLOB', 'SQLXML')
 
 BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'INTEGER', 'SMALLINT')
+NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'BIT', 'INTEGER', 'SMALLINT',
+                         'TINYINT')
 
 FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
 
@@ -619,6 +620,8 @@ _to_double = _java_to_py('doubleValue')
 
 _to_int = _java_to_py('intValue')
 
+_to_boolean = _java_to_py('booleanValue')
+
 def _init_types(types_map):
     global _jdbc_name_to_const
     _jdbc_name_to_const = types_map
@@ -642,7 +645,7 @@ _converters = None
 
 _DEFAULT_CONVERTERS = {
     # see
-    # http://download.oracle.com/javase/6/docs/api/java/sql/Types.html
+    # http://download.oracle.com/javase/8/docs/api/java/sql/Types.html
     # for possible keys
     'TIMESTAMP': _to_datetime,
     'TIME': _to_time,
@@ -652,7 +655,9 @@ _DEFAULT_CONVERTERS = {
     'NUMERIC': _to_double,
     'DOUBLE': _to_double,
     'FLOAT': _to_double,
+    'TINYINT': _to_int,
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
-    'BOOLEAN': _java_to_py('booleanValue'),
+    'BOOLEAN': _to_boolean,
+    'BIT': _to_boolean
 }
