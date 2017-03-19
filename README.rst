@@ -159,6 +159,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.1.0 - 2017-03-19
 
   - Support BIT and TINYINT type mappings (thanks @Mokubyow for
     reporting the issue).
