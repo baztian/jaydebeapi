@@ -159,6 +159,10 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Support BIT and TINYINT type mappings (thanks @Mokubyow for
+    reporting the issue).
+
 - 1.0.0 - 2017-01-10
 
   - Allow for db properties to be passed to the connect
