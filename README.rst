@@ -159,6 +159,9 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Don't fail on dates before 1900 on Python < 3.
+
 - 1.1.0 - 2017-03-19
 
   - Support BIT and TINYINT type mappings (thanks @Mokubyow for
