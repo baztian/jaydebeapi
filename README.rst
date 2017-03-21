@@ -159,6 +159,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.1.1 - 2017-03-21
 
   - Don't fail on dates before 1900 on Python < 3.
 
