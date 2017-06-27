@@ -492,11 +492,12 @@ class Cursor(object):
     def execute(self, operation, parameters=None):
         if self._connection._closed:
             raise Error()
-        if not parameters:
-            parameters = ()
         self._close_last()
-        self._prep = self._connection.jconn.prepareStatement(operation)
-        self._set_stmt_parms(self._prep, parameters)
+        if not parameters:
+            self._prep = self._connection.jconn.createStatement(operation)
+        else:
+            self._prep = self._connection.jconn.prepareStatement(operation)
+            self._set_stmt_parms(self._prep, parameters)
         try:
             is_rs = self._prep.execute()
         except:
