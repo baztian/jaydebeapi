@@ -196,6 +196,22 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         dargs = [ info ]
     else:
         dargs = driver_args
+    if sys.platform.startswith('zos'): 
+        # PYAN-933 
+        # Caused by: java.lang.Exception: No native library is found for os.name=zOS and os.arch=s390x
+        try:
+            return jpype.java.sql.DriverManager.getConnection(url, *dargs)
+        except Exception as e:
+            lst = e.stacktrace().split('\n')
+            msg1 = [s for s in lst if "No native library is found for os.name=zOS" in s]
+            msg2 = [s for s in lst if "org.sqlite.JDBC.connect" in s]
+            if msg1 or msg2:
+                if   msg1: msg = ''.join( s for s in msg1 )
+                elif msg2: msg = ''.join( s for s in msg2 ).replace('\t','')
+                msg = '; '.join( [msg, e.message()] )
+                import unittest
+                raise unittest.SkipTest( msg )
+
     return jpype.java.sql.DriverManager.getConnection(url, *dargs)
 
 def _get_classpath():
