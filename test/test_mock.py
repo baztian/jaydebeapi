@@ -106,3 +106,12 @@ class MockTest(unittest.TestCase):
             fail("expected exception")
         except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
+
+    def test_connection_timeout(self):
+        driver = 'org.jaydebeapi.mockdriver.MockDriver'
+        url = 'jdbc:jaydebeapi://dummyurl'
+        conn = jaydebeapi.connect(driver, url, timeout=10)
+        cursor = conn.cursor()
+        cursor.execute("dummy stmt")
+        result = cursor.fetchone()
+        self.assertIsNotNone(result)
