@@ -378,6 +378,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None, timeout=Non
             libs = [ libs ]
     else:
         libs = []
+    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
     return Connection(jconn, _converters, timeout)
 
 # DB-API 2.0 Connection Object
