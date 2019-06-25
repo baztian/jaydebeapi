@@ -192,7 +192,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         types = jpype.java.sql.Types
         types_map = {}
         for i in types.__javaclass__.getClassFields():
-            types_map[i.getName()] = i.getStaticAttribute()
+            types_map[i.getName()] = i.__get__(i)
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
