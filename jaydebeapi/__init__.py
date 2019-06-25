@@ -173,14 +173,14 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         # jvm_path = ('/usr/lib/jvm/java-6-openjdk'
         #             '/jre/lib/i386/client/libjvm.so')
         jvm_path = jpype.getDefaultJVMPath()
-        jpype.startJVM(jvm_path, *args)
+        jpype.startJVM(jvm_path, *args, convertStrings=True)
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
         for i in types.__javaclass__.getClassFields():
-            types_map[i.getName()] = i.getStaticAttribute()
+            types_map[i.getName()] = i.__get__(i)
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
