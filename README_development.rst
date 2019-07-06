@@ -23,7 +23,7 @@ Setup test requirements
     # add jython to your path
 
     # Install Python 2.6
-    sudo add-apt-repository ppa:fkrull/deadsnakes
+    sudo add-apt-repository ppa:deadsnakes/ppa
     sudo apt-get update
     sudo apt-get install python2.6 python2.6-dev
 
