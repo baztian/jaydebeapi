@@ -173,10 +173,19 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         # jvm_path = ('/usr/lib/jvm/java-6-openjdk'
         #             '/jre/lib/i386/client/libjvm.so')
         jvm_path = jpype.getDefaultJVMPath()
-        if jpype.__version__.startswith("0.6"):
+        jpype_ver = 0.
+        if hasattr(jpype, '__version__'):
+            try:
+                ver_match = re.match('\d+\.\d+', jpype.__version__)
+                if ver_match:
+                    jpype_ver = float(ver_match.group(0))
+            except ValueError:
+                pass
+        if jpype_ver < 0.7:
             jpype.startJVM(jvm_path, *args)
         else:
-            jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True, convertStrings=True)
+            jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
+                           convertStrings=True)
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
     if _jdbc_name_to_const is None:
