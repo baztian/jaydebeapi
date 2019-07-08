@@ -151,7 +151,11 @@ def _handle_sql_exception_jpype():
     import jpype
     SQLException = jpype.java.sql.SQLException
     exc_info = sys.exc_info()
-    if issubclass(exc_info[1].__javaclass__, SQLException):
+    if old_jpype:
+        clazz = exc_info[1].__javaclass__
+    else:
+        clazz = exc_info[0]
+    if issubclass(clazz, SQLException):
         exc_type = DatabaseError
     else:
         exc_type = InterfaceError
