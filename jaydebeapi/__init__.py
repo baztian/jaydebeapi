@@ -192,6 +192,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
                            convertStrings=True)
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
+        jpype.java.lang.Thread.currentThread().setContextClassLoader(jpype.java.lang.ClassLoader.getSystemClassLoader())
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
