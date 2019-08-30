@@ -157,7 +157,7 @@ def _handle_sql_exception_jpype():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
     
-def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
+def _jdbc_connect_jpype(jclassname, url, driver_args, java_opts, jars, libs):
     import jpype
     if not jpype.isJVMStarted():
         args = []
@@ -168,6 +168,9 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         if class_path:
             args.append('-Djava.class.path=%s' %
                         os.path.pathsep.join(class_path))
+        if java_opts:
+            for arg in java_opts:
+                args.append(arg)
         if libs:
             # path to shared libraries
             libs_path = os.path.pathsep.join(libs)
@@ -367,12 +370,14 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, url, driver_args=None, jars=None, libs=None):
+def connect(jclassname, url, driver_args=None, java_opts=None, jars=None, libs=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
     jclassname: Full qualified Java class name of the JDBC driver.
     url: Database url as required by the JDBC driver.
+    java_opts: List of JVM options with format %option%=%value%.
+          Only works with jpype
     driver_args: Dictionary or sequence of arguments to be passed to
            the Java DriverManager.getConnection method. Usually
            sequence of username and password for the db. Alternatively
@@ -388,6 +393,10 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
         driver_args = [ driver_args ]
     if not driver_args:
        driver_args = []
+    if isinstance(java_opts, string_type):
+        java_opts = [ java_opts ]
+    if not java_opts:
+       java_opts = []
     if jars:
         if isinstance(jars, string_type):
             jars = [ jars ]
@@ -398,7 +407,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
             libs = [ libs ]
     else:
         libs = []
-    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
+    jconn = _jdbc_connect(jclassname, url, driver_args, java_opts, jars, libs)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
