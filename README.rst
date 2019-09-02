@@ -159,6 +159,12 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Added compatibility to JPype1 0.7 (thanks to @Iverian, @Thrameos)
+  - Dropped python 2.6 support
+  - Fix build working with newer Maven versions
+  - Accidently force-pushed to master branch. Sorry for that.
+    
 - 1.1.1 - 2017-03-21
 
   - Don't fail on dates before 1900 on Python < 3.
