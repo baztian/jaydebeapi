@@ -10,7 +10,9 @@ Setup test requirements
 =======================
 
 ::
-    sudo apt-get install python2.7-dev python3-dev python3-venv g++ maven
+
+    sudo apt-get install python2.7-dev python3-dev python3-venv \
+                         build-essentials g++ maven
     cd <JAYDEBEAPI_WORKDIR>
     python3 -m venv env
     . env/bin/activate
@@ -22,7 +24,7 @@ Setup test requirements
     # add jython to your path
 
     # Install Python 2.6
-    sudo add-apt-repository ppa:fkrull/deadsnakes
+    sudo add-apt-repository ppa:deadsnakes/ppa
     sudo apt-get update
     sudo apt-get install python2.6 python2.6-dev
 

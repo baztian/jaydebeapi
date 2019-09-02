@@ -159,6 +159,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.1.1 - 2017-03-21
 
   - Added compatibility to JPype1 0.7 (thanks to @Iverian, @Thrameos)
   - Dropped python 2.6 support
