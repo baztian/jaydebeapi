@@ -646,6 +646,8 @@ _to_int = _java_to_py('intValue')
 
 _to_boolean = _java_to_py('booleanValue')
 
+_to_long = _java_to_py('longValue')
+
 def _init_types(types_map):
     global _jdbc_name_to_const
     _jdbc_name_to_const = types_map
@@ -683,5 +685,6 @@ _DEFAULT_CONVERTERS = {
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
     'BOOLEAN': _to_boolean,
-    'BIT': _to_boolean
+    'BIT': _to_boolean,
+    'BIGINT': _to_long
 }
