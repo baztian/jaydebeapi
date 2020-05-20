@@ -207,6 +207,17 @@ class IntegrationTestBase(object):
         cursor.execute("select * from ACCOUNT")
         self.assertEqual(cursor.rowcount, -1)
 
+    def test_connection_with_statement(self):
+        with self.connect() as conn:
+            self.assertEqual(conn._closed, False)
+        self.assertEqual(conn._closed, True)
+
+    def test_cursor_with_statement(self):
+        with self.conn.cursor() as cursor:
+            cursor.execute("select 1 from ACCOUNT")
+            self.assertIsNotNone(cursor._connection)
+        self.assertIsNone(cursor._connection)
+
 class SqliteTestBase(IntegrationTestBase):
 
     def setUpSql(self):
