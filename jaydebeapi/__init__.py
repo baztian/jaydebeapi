@@ -156,7 +156,7 @@ def _handle_sql_exception_jpype():
     else:
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
-    
+
 def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     import jpype
     if not jpype.isJVMStarted():
@@ -441,6 +441,12 @@ class Connection(object):
     def cursor(self):
         return Cursor(self, self._converters)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 # DB-API 2.0 Cursor Object
 class Cursor(object):
 
@@ -593,6 +599,12 @@ class Cursor(object):
 
     def setoutputsize(self, size, column=None):
         pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 def _unknownSqlTypeConverter(rs, col):
     return rs.getObject(col)
