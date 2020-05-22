@@ -65,7 +65,8 @@ Build a new release
 
 7. Run setuptools to ensure everything is working as expected. ::
 
-     $ python setup.py sdist bdist_wheel upload -r pypitest
+     $ python setup.py sdist bdist_wheel 
+     $ twine upload dist/* -r pypitest
 
 8. Check the files in ``dist/`` for unwanted or missing files.
 
