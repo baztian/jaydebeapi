@@ -151,10 +151,17 @@ def _handle_sql_exception_jpype():
     import jpype
     SQLException = jpype.java.sql.SQLException
     exc_info = sys.exc_info()
-    if issubclass(exc_info[1].__javaclass__, SQLException):
+    if old_jpype:
+        clazz = exc_info[1].__javaclass__
+        db_err = issubclass(clazz, SQLException)
+    else:
+        db_err = isinstance(exc_info[1], SQLException)
+
+    if db_err:
         exc_type = DatabaseError
     else:
         exc_type = InterfaceError
+        
     reraise(exc_type, exc_info[1], exc_info[2])
     
 def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
@@ -195,12 +202,15 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
-        for i in types.__javaclass__.getClassFields():
-            if old_jpype:
-                const = i.getStaticAttribute()
-            else:
-                const = i.__get__(i)
+        if old_jpype:
+          for i in types.__javaclass__.getClassFields():
+            const = i.getStaticAttribute()
             types_map[i.getName()] = const
+        else:
+          for i in types.class_.getFields():
+            if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
+              const = i.get(None)
+              types_map[i.getName()] = const 
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
