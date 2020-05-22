@@ -160,6 +160,9 @@ Changelog
 
 - Next version - unreleased
 
+  - Added compatibility to JPype1 0.7.2+ (thanks to @dpd)
+  - Support `with` statement (thanks to @Szczepanov)
+
 - 1.1.2 - 2019-09-02
 
   - Added compatibility to JPype1 0.7 (thanks to @Iverian, @Thrameos)
