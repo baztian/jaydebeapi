@@ -11,6 +11,6 @@ uri={0}/.m2/repository/
 type=local
 
 [repos:central]
-uri=http://repo1.maven.org/maven2/
+uri=https://repo1.maven.org/maven2/
 type=remote
 """.format(dist), file=out)
