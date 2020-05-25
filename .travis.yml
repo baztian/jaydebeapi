@@ -36,7 +36,7 @@ before_install:
 
 install:
   - pip install coveralls
-  - pip install tox-travis
+  - pip install tox==3.9.0 tox-travis
 
 script: tox
 
