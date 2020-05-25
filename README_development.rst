@@ -19,14 +19,9 @@ Setup test requirements
     pip install -rdev-requirements.txt
 
     # Install Jython 2.7
-    ci/mvnget.sh org.python:jython-installer:2.7.0
-    java -jar jython-installer-2.7.0.jar && rm jython-installer-2.7.0.jar
+    ci/mvnget.sh org.python:jython-installer:2.7.2
+    java -jar jython-installer-2.7.2.jar && rm jython-installer-2.7.2.jar
     # add jython to your path
-
-    # Install Python 2.6
-    sudo add-apt-repository ppa:deadsnakes/ppa
-    sudo apt-get update
-    sudo apt-get install python2.6 python2.6-dev
 
     # run tests for all supported envs
     tox
