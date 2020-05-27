@@ -19,3 +19,6 @@ target/
 .coverage
 *.iml
 .idea/
+.settings/
+.jython_cache/
+.vscode/
