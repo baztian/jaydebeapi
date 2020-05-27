@@ -62,7 +62,7 @@ class MockTest(unittest.TestCase):
         cursor = self.conn.cursor()
         try:
             cursor.execute("dummy stmt")
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
@@ -71,7 +71,7 @@ class MockTest(unittest.TestCase):
         cursor = self.conn.cursor()
         try:
             cursor.execute("dummy stmt")
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
 
@@ -79,7 +79,7 @@ class MockTest(unittest.TestCase):
         self.conn.jconn.mockExceptionOnCommit("java.sql.SQLException", "expected")
         try:
             self.conn.commit()
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
@@ -87,7 +87,7 @@ class MockTest(unittest.TestCase):
         self.conn.jconn.mockExceptionOnCommit("java.lang.RuntimeException", "expected")
         try:
             self.conn.commit()
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
 
@@ -95,7 +95,7 @@ class MockTest(unittest.TestCase):
         self.conn.jconn.mockExceptionOnRollback("java.sql.SQLException", "expected")
         try:
             self.conn.rollback()
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.DatabaseError as e:
             self.assertEquals(str(e), "java.sql.SQLException: expected")
 
@@ -103,6 +103,6 @@ class MockTest(unittest.TestCase):
         self.conn.jconn.mockExceptionOnRollback("java.lang.RuntimeException", "expected")
         try:
             self.conn.rollback()
-            fail("expected exception")
+            self.fail("expected exception")
         except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
