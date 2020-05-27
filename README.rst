@@ -160,6 +160,10 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Increased thread safety. Should resolve some of the
+    `No suitable driver found` errors. (thanks to @thealmightygrant)
+
 - 1.2.0 - 2020-05-22
 
   - Added compatibility to JPype1 0.7.2+ (thanks to @dpd)
