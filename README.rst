@@ -96,7 +96,7 @@ Here is an example:
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
 ...                '("CUST_ID" INTEGER not null,'
-...                ' "NAME" VARCHAR not null,'
+...                ' "NAME" VARCHAR(50) not null,'
 ...                ' primary key ("CUST_ID"))'
 ...             )
 >>> curs.execute("insert into CUSTOMER values (1, 'John')")
