@@ -291,24 +291,3 @@ class PropertiesDriverArgsPassingTest(unittest.TestCase):
                                      {'user': 'SA', 'password': '' } )
         c = jaydebeapi.connect(driver, url, driver_args)
         c.close()
-
-class WithStatementTest(unittest.TestCase):
-
-    def test_connection_with_statement(self):
-        driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
-                                     'jdbc:hsqldb:mem:.',
-                                     ['SA', ''] )
-        with jaydebeapi.connect(driver, url, driver_args) as conn:
-            self.assertEqual(conn._closed, False)
-        self.assertEqual(conn._closed, True)
-
-    def test_cursor_with_statement(self):
-        driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
-                                     'jdbc:hsqldb:mem:.',
-                                     {'user': 'SA', 'password': '' } )
-        c = jaydebeapi.connect(driver, url, driver_args)
-        with c.cursor() as cursor:
-            cursor.execute("CALL \"java.lang.Math.sqrt\"(2.0)")
-            self.assertIsNotNone(cursor._connection)
-        self.assertIsNone(cursor._connection)
-
