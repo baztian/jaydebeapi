@@ -1,11 +1,10 @@
+os: linux
+dist: focal
 language: python
-
-# use container-based infrastructure
-sudo: false
 
 deploy:
   provider: pypi
-  user: cheffe
+  username: cheffe
   password:
     secure: ZQsqnd4Ux3erP0xfLJefJ/90wcJX/L2SfYOZFPbAIwJaX3n9iXf7jOGaT5FzJxLH+c0RJ1varqX0WZo1v0YKRz05IiSCLfZIT3Ia/Cy4nOLLL4a6CFUqzTlO7V1xyKMtQKimWGF5AYTAWvLTPu7cdDeg1YPENrZBYZPvJ/yRiJ4=
   distributions: "sdist bdist_wheel"
@@ -21,14 +20,15 @@ cache:
 
 python:
   - '2.7'
-  - '3.4'
+  - '3.5'
   - '3.6'
 
 env:
-matrix:
+
+jobs:
   include:
     - python: 3.6
-      env: JYTHON=org.python:jython-installer:2.7.0 TOXENV="jython-driver-{hsqldb,mock}"
+      env: JYTHON=org.python:jython-installer:2.7.2 TOXENV="jython-driver-{hsqldb,mock}"
 
 before_install:
   - ci/before_install.sh
