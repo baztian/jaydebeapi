@@ -67,4 +67,4 @@ Build a new release
 
 9. Send new version and tags to github origin. ::
 
-     $ git push origin master --follow-tags
+     $ git push --follow-tags && push --tags
