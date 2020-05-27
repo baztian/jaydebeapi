@@ -160,6 +160,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.2.1 - 2020-05-27
 
   - Increased thread safety. Should resolve some of the
     `No suitable driver found` errors. (thanks to @thealmightygrant)
