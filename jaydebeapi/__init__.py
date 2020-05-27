@@ -377,7 +377,7 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, url, driver_args=None, jars=None, libs=None):
+def connect(jclassname, url, driver_args=None, jars=None, libs=None, timeout=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
@@ -409,7 +409,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     else:
         libs = []
     jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
-    return Connection(jconn, _converters)
+    return Connection(jconn, _converters, timeout)
 
 # DB-API 2.0 Connection Object
 class Connection(object):
@@ -425,10 +425,11 @@ class Connection(object):
     DataError = DataError
     NotSupportedError = NotSupportedError
 
-    def __init__(self, jconn, converters):
+    def __init__(self, jconn, converters, timeout=None):
         self.jconn = jconn
         self._closed = False
         self._converters = converters
+        self._timeout = timeout
 
     def close(self):
         if self._closed:
@@ -449,7 +450,7 @@ class Connection(object):
             _handle_sql_exception()
 
     def cursor(self):
-        return Cursor(self, self._converters)
+        return Cursor(self, self._converters, self._timeout)
 
     def __enter__(self):
         return self
@@ -466,9 +467,10 @@ class Cursor(object):
     _rs = None
     _description = None
 
-    def __init__(self, connection, converters):
+    def __init__(self, connection, converters, timeout=None):
         self._connection = connection
         self._converters = converters
+        self._timeout = timeout
 
     @property
     def description(self):
@@ -522,8 +524,11 @@ class Cursor(object):
 
     def _set_stmt_parms(self, prep_stmt, parameters):
         for i in range(len(parameters)):
-            # print (i, parameters[i], type(parameters[i]))
             prep_stmt.setObject(i + 1, parameters[i])
+
+        # https://docs.oracle.com/javase/7/docs/api/java/sql/Statement.html#setQueryTimeout(int)
+        if self._timeout is not None:
+            prep_stmt.setQueryTimeout(int(self._timeout))  # unit: seconds
 
     def execute(self, operation, parameters=None):
         if self._connection._closed:
