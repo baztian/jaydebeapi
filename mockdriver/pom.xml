@@ -15,8 +15,8 @@
   <dependencies>
    <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <version>3.3.3</version>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
       <!-- non-test scope on purpose -->
    </dependency>
     <dependency>

@@ -106,3 +106,16 @@ class MockTest(unittest.TestCase):
             self.fail("expected exception")
         except jaydebeapi.InterfaceError as e:
             self.assertEquals(str(e), "java.lang.RuntimeException: expected")
+
+    def test_cursor_with_statement(self):
+        self.conn.jconn.mockType("INTEGER")
+        with self.conn.cursor() as cursor:
+            cursor.execute("dummy stmt")
+            self.assertIsNotNone(cursor._connection)
+        self.assertIsNone(cursor._connection)
+
+    def test_connection_with_statement(self):
+        with jaydebeapi.connect('org.jaydebeapi.mockdriver.MockDriver',
+                                       'jdbc:jaydebeapi://dummyurl') as conn:
+            self.assertEqual(conn._closed, False)
+        self.assertEqual(conn._closed, True)

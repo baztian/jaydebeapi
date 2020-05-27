@@ -8,7 +8,7 @@
 .. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
     :target: https://coveralls.io/r/baztian/jaydebeapi
 
-.. image:: https://img.shields.io/badge/python-2.7,_3.4,_3.6-blue.svg
+.. image:: https://img.shields.io/badge/python-2.7,_3.5,_3.6-blue.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi/
 
 .. image:: https://img.shields.io/badge/jython-2.7.2-blue.svg
@@ -96,7 +96,7 @@ Here is an example:
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
 ...                '("CUST_ID" INTEGER not null,'
-...                ' "NAME" VARCHAR not null,'
+...                ' "NAME" VARCHAR(50) not null,'
 ...                ' primary key ("CUST_ID"))'
 ...             )
 >>> curs.execute("insert into CUSTOMER values (1, 'John')")

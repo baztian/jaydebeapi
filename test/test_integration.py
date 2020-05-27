@@ -207,17 +207,6 @@ class IntegrationTestBase(object):
         cursor.execute("select * from ACCOUNT")
         self.assertEqual(cursor.rowcount, -1)
 
-    def test_connection_with_statement(self):
-        with self.connect() as conn:
-            self.assertEqual(conn._closed, False)
-        self.assertEqual(conn._closed, True)
-
-    def test_cursor_with_statement(self):
-        with self.conn.cursor() as cursor:
-            cursor.execute("select 1 from ACCOUNT")
-            self.assertIsNotNone(cursor._connection)
-        self.assertIsNone(cursor._connection)
-
 class SqliteTestBase(IntegrationTestBase):
 
     def setUpSql(self):
@@ -293,10 +282,12 @@ class PropertiesDriverArgsPassingTest(unittest.TestCase):
         driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
                                      'jdbc:hsqldb:mem:.',
                                      ['SA', ''] )
-        jaydebeapi.connect(driver, url, driver_args)
+        c = jaydebeapi.connect(driver, url, driver_args)
+        c.close()
 
     def test_connect_with_properties(self):
         driver, url, driver_args = ( 'org.hsqldb.jdbcDriver',
                                      'jdbc:hsqldb:mem:.',
                                      {'user': 'SA', 'password': '' } )
-        jaydebeapi.connect(driver, url, driver_args)
+        c = jaydebeapi.connect(driver, url, driver_args)
+        c.close()
