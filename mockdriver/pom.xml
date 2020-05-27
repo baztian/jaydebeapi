@@ -15,14 +15,14 @@
   <dependencies>
    <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.10.19</version>
+      <artifactId>mockito-inline</artifactId>
+      <version>3.3.3</version>
       <!-- non-test scope on purpose -->
    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.13</version>
       <scope>test</scope>
     </dependency>
  </dependencies>
@@ -32,7 +32,7 @@
      <plugin>
        <groupId>org.apache.maven.plugins</groupId>
        <artifactId>maven-dependency-plugin</artifactId>
-       <version>2.10</version>
+       <version>3.1.2</version>
        <executions>
          <execution>
            <id>copy-dependencies</id>
@@ -52,13 +52,12 @@
      <plugin>
        <groupId>org.apache.maven.plugins</groupId>
        <artifactId>maven-jar-plugin</artifactId>
-       <version>3.1.2</version>
+       <version>3.2.0</version>
        <configuration>
          <archive>
            <manifest>
              <addClasspath>true</addClasspath>
              <classpathPrefix>lib/</classpathPrefix>
-             <!-- <mainClass>theMainClass</mainClass> -->
            </manifest>
          </archive>
        </configuration>
