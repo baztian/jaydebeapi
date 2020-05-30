@@ -213,8 +213,8 @@ class IntegrationTestBase(object):
         cursor.execute("select * from CUSTOMER")
         result = cursor.fetchall()
         cursor.close()
-        exp = [(1, 12345)]
-        self.assertEqual(result, exp)
+        exp = "[(1, 12345)]"
+        self.assertEqual(str(result), exp)
 
 class SqliteTestBase(IntegrationTestBase):
 
