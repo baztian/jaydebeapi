@@ -62,7 +62,7 @@ class MockTest(unittest.TestCase):
         cursor = self.conn.cursor()
         cursor.execute("dummy stmt")
         result = cursor.fetchone()
-        self.assertEquals(result[0], 12345)
+        self.assertEquals(str(result[0]), "12345")
 
     def test_sql_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.sql.SQLException", "expected")
