@@ -65,11 +65,18 @@ class MockTest(unittest.TestCase):
         self.assertEquals(str(result[0]), "12345")
 
     def test_decimal_places(self):
-        self.conn.jconn.mockBigDecimalResult(12345, 2)
+        self.conn.jconn.mockBigDecimalResult(12345, 1)
         cursor = self.conn.cursor()
         cursor.execute("dummy stmt")
         result = cursor.fetchone()
-        self.assertEquals(str(result[0]), "123.45")
+        self.assertEquals(str(result[0]), "1234.5")
+
+    def test_float_decimal(self):
+        self.conn.jconn.mockFloatDecimalResult(1234.5)
+        cursor = self.conn.cursor()
+        cursor.execute("dummy stmt")
+        result = cursor.fetchone()
+        self.assertEquals(str(result[0]), "1234.5")
 
     def test_sql_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.sql.SQLException", "expected")

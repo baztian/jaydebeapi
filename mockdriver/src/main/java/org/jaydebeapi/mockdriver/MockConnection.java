@@ -70,8 +70,24 @@ public abstract class MockConnection implements Connection {
     Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
     Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
 
-    BigDecimal bd = BigDecimal.valueOf(value, scale);
-    Mockito.when(mockResultSet.getObject(1)).thenReturn(bd);
+    BigDecimal columnValue = BigDecimal.valueOf(value, scale);
+    Mockito.when(mockResultSet.getObject(1)).thenReturn(columnValue);
+    Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
+    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+  }
+
+  public final void mockFloatDecimalResult(float value) throws SQLException {
+    PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+    Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
+    mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for other)");
+    Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
+    Mockito.when(mockResultSet.next()).thenReturn(true);
+    ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
+    Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
+    Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
+
+    Float columnValue = Float.valueOf(value);
+    Mockito.when(mockResultSet.getObject(1)).thenReturn(value);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
   }
