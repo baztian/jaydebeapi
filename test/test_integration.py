@@ -70,7 +70,6 @@ class IntegrationTestBase(object):
     def tearDown(self):
         cursor = self.conn.cursor()
         cursor.execute("drop table ACCOUNT");
-        cursor.execute("drop table CUSTOMER");
         self.conn.close()
 
     def test_execute_and_fetch_no_data(self):
@@ -208,24 +207,11 @@ class IntegrationTestBase(object):
         cursor.execute("select * from ACCOUNT")
         self.assertEqual(cursor.rowcount, -1)
 
-    def test_simple_decimal_print(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select * from CUSTOMER")
-        result = cursor.fetchall()
-        cursor.close()
-        # exp = "[(1, 12345)]"
-        self.assertEqual(1, len(result))
-        self.assertEqual(2, len(result[0]))
-        self.assertEqual(result[0][0], 1)
-        self.assertEqual(result[0][1], 12345)
-
 class SqliteTestBase(IntegrationTestBase):
 
     def setUpSql(self):
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'create.sql'))
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_simple_decimal.sql'))
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert_simple_decimal.sql'))
 
     def test_execute_type_blob(self):
         cursor = self.conn.cursor()
@@ -289,8 +275,6 @@ class HsqldbTest(IntegrationTestBase, unittest.TestCase):
     def setUpSql(self):
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_hsqldb.sql'))
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'create_simple_decimal.sql'))
-        self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert_simple_decimal.sql'))
 
 class PropertiesDriverArgsPassingTest(unittest.TestCase):
 
