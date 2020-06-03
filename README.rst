@@ -160,10 +160,14 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Return (big) decimal types as long value if scale is zero (thanks
+    to @ministat)
+
 - 1.2.1 - 2020-05-27
 
   - Increased thread safety. Should resolve some of the
-    `No suitable driver found` errors. (thanks to @thealmightygrant)
+    `No suitable driver found` errors (thanks to @thealmightygrant)
 
 - 1.2.0 - 2020-05-22
 
