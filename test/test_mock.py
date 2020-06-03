@@ -57,12 +57,19 @@ class MockTest(unittest.TestCase):
         result = cursor.fetchone()
         self.assertEquals(result[0], "1899-12-31")
 
-    def test_simple_decimal(self):
-        self.conn.jconn.mockSimpleDecimalResult(12345)
+    def test_decimal_scale_zero(self):
+        self.conn.jconn.mockBigDecimalResult(12345, 0)
         cursor = self.conn.cursor()
         cursor.execute("dummy stmt")
         result = cursor.fetchone()
         self.assertEquals(str(result[0]), "12345")
+
+    def test_decimal_places(self):
+        self.conn.jconn.mockBigDecimalResult(12345, 2)
+        cursor = self.conn.cursor()
+        cursor.execute("dummy stmt")
+        result = cursor.fetchone()
+        self.assertEquals(str(result[0]), "123.45")
 
     def test_sql_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.sql.SQLException", "expected")

@@ -60,17 +60,17 @@ public abstract class MockConnection implements Connection {
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
   }
 
-  public final void mockSimpleDecimalResult(int value) throws SQLException {
+  public final void mockBigDecimalResult(long value, int scale) throws SQLException {
     PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
     Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
-    mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for simple decimal)");
+    mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for BigDecimal)");
     Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
     Mockito.when(mockResultSet.next()).thenReturn(true);
     ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
     Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
     Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
 
-    BigDecimal bd = BigDecimal.valueOf(value);
+    BigDecimal bd = BigDecimal.valueOf(value, scale);
     Mockito.when(mockResultSet.getObject(1)).thenReturn(bd);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
