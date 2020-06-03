@@ -163,6 +163,7 @@ Changelog
 
   - Return (big) decimal types as long value if scale is zero (thanks
     to @ministat)
+  - Fix `DECIMAL` and `NUMERIC` type conversion for Jython
 
 - 1.2.1 - 2020-05-27
 

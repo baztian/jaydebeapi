@@ -663,19 +663,19 @@ def _java_to_py(java_method):
         return getattr(java_val, java_method)()
     return to_py
 
-def _java_to_py_bigdecimal(java_method):
+def _java_to_py_bigdecimal():
     def to_py(rs, col):
         java_val = rs.getObject(col)
         if java_val is None:
             return
         if hasattr(java_val, 'scale'):
-            scale = getattr(java_val, 'scale')()
+            scale = java_val.scale()
             if scale == 0:
-                return getattr(java_val, 'longValue')()
+                return java_val.longValue()
             else:
-                return getattr(java_val, java_method)()
+                return java_val.doubleValue()
         else:
-            return getattr(java_val, java_method)()
+            return float(java_val)
     return to_py
 
 _to_double = _java_to_py('doubleValue')
@@ -684,7 +684,7 @@ _to_int = _java_to_py('intValue')
 
 _to_boolean = _java_to_py('booleanValue')
 
-_to_decimal = _java_to_py_bigdecimal('doubleValue')
+_to_decimal = _java_to_py_bigdecimal()
 
 def _init_types(types_map):
     global _jdbc_name_to_const
