@@ -70,9 +70,8 @@ public abstract class MockConnection implements Connection {
     Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
     Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
 
-    BigDecimal bd = new BigDecimal(Integer.toString(value));
+    BigDecimal bd = BigDecimal.valueOf(value);
     Mockito.when(mockResultSet.getObject(1)).thenReturn(bd);
-    Mockito.when(mockResultSet.getBigDecimal(1)).thenReturn(bd);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
   }
