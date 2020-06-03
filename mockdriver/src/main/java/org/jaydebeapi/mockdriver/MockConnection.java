@@ -76,7 +76,7 @@ public abstract class MockConnection implements Connection {
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
   }
 
-  public final void mockFloatDecimalResult(float value) throws SQLException {
+  public final void mockDoubleDecimalResult(double value) throws SQLException {
     PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
     Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
     mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for other)");
@@ -86,7 +86,7 @@ public abstract class MockConnection implements Connection {
     Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
     Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
 
-    Float columnValue = Float.valueOf(value);
+    Double columnValue = Double.valueOf(value);
     Mockito.when(mockResultSet.getObject(1)).thenReturn(value);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);

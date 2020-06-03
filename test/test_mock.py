@@ -71,8 +71,8 @@ class MockTest(unittest.TestCase):
         result = cursor.fetchone()
         self.assertEquals(str(result[0]), "1234.5")
 
-    def test_float_decimal(self):
-        self.conn.jconn.mockFloatDecimalResult(1234.5)
+    def test_double_decimal(self):
+        self.conn.jconn.mockDoubleDecimalResult(1234.5)
         cursor = self.conn.cursor()
         cursor.execute("dummy stmt")
         result = cursor.fetchone()
