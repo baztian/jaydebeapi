@@ -17,7 +17,7 @@
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-__version_info__ = (1, 2, 1)
+__version_info__ = (1, 2, 2)
 __version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime

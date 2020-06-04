@@ -160,6 +160,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.2.2 - 2020-06-04
 
   - Return (big) decimal types as long value if scale is zero (thanks
     to @ministat)
