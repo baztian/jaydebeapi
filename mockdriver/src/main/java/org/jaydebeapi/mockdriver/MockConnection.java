@@ -57,7 +57,7 @@ public abstract class MockConnection implements Connection {
     PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
     Throwable exception = createException(className, exceptionMessage);
     Mockito.when(mockPreparedStatement.execute()).thenThrow(exception);
-    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    Mockito.when(this.prepareStatement(Mockito.any())).thenReturn(mockPreparedStatement);
   }
 
   public final void mockBigDecimalResult(long value, int scale) throws SQLException {
@@ -73,7 +73,7 @@ public abstract class MockConnection implements Connection {
     BigDecimal columnValue = BigDecimal.valueOf(value, scale);
     Mockito.when(mockResultSet.getObject(1)).thenReturn(columnValue);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
-    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    Mockito.when(this.prepareStatement(Mockito.any())).thenReturn(mockPreparedStatement);
   }
 
   public final void mockDoubleDecimalResult(double value) throws SQLException {
@@ -89,7 +89,7 @@ public abstract class MockConnection implements Connection {
     Double columnValue = Double.valueOf(value);
     Mockito.when(mockResultSet.getObject(1)).thenReturn(value);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
-    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    Mockito.when(this.prepareStatement(Mockito.any())).thenReturn(mockPreparedStatement);
   }
 
   public final void mockDateResult(int year, int month, int day) throws SQLException {
@@ -109,7 +109,7 @@ public abstract class MockConnection implements Connection {
     Date ancientDate = new Date(cal.getTime().getTime());
     Mockito.when(mockResultSet.getDate(1)).thenReturn(ancientDate);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DATE);
-    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    Mockito.when(this.prepareStatement(Mockito.any())).thenReturn(mockPreparedStatement);
   }
 
   public final void mockType(String sqlTypesName) throws SQLException {
@@ -123,7 +123,7 @@ public abstract class MockConnection implements Connection {
     Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
     int sqlTypeCode = extractTypeCodeForName(sqlTypesName);
     Mockito.when(mockMetaData.getColumnType(1)).thenReturn(sqlTypeCode);
-    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+    Mockito.when(this.prepareStatement(Mockito.any())).thenReturn(mockPreparedStatement);
   }
 
   public final ResultSet verifyResultSet() {
