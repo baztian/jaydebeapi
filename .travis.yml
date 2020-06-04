@@ -19,16 +19,10 @@ cache:
   - $HOME/jython
 
 python:
-  - '2.7'
   - '3.5'
   - '3.6'
 
 env:
-
-jobs:
-  include:
-    - python: 3.6
-      env: JYTHON=org.python:jython-installer:2.7.2 TOXENV="jython-driver-{hsqldb,mock}"
 
 before_install:
   - ci/before_install.sh
