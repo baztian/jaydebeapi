@@ -1,6 +1,7 @@
 package org.jaydebeapi.mockdriver;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -56,6 +57,38 @@ public abstract class MockConnection implements Connection {
     PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
     Throwable exception = createException(className, exceptionMessage);
     Mockito.when(mockPreparedStatement.execute()).thenThrow(exception);
+    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+  }
+
+  public final void mockBigDecimalResult(long value, int scale) throws SQLException {
+    PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+    Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
+    mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for BigDecimal)");
+    Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
+    Mockito.when(mockResultSet.next()).thenReturn(true);
+    ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
+    Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
+    Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
+
+    BigDecimal columnValue = BigDecimal.valueOf(value, scale);
+    Mockito.when(mockResultSet.getObject(1)).thenReturn(columnValue);
+    Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
+    Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
+  }
+
+  public final void mockDoubleDecimalResult(double value) throws SQLException {
+    PreparedStatement mockPreparedStatement = Mockito.mock(PreparedStatement.class);
+    Mockito.when(mockPreparedStatement.execute()).thenReturn(true);
+    mockResultSet = Mockito.mock(ResultSet.class, "ResultSet(for other)");
+    Mockito.when(mockPreparedStatement.getResultSet()).thenReturn(mockResultSet);
+    Mockito.when(mockResultSet.next()).thenReturn(true);
+    ResultSetMetaData mockMetaData = Mockito.mock(ResultSetMetaData.class);
+    Mockito.when(mockResultSet.getMetaData()).thenReturn(mockMetaData);
+    Mockito.when(mockMetaData.getColumnCount()).thenReturn(1);
+
+    Double columnValue = Double.valueOf(value);
+    Mockito.when(mockResultSet.getObject(1)).thenReturn(value);
+    Mockito.when(mockMetaData.getColumnType(1)).thenReturn(Types.DECIMAL);
     Mockito.when(this.prepareStatement(Mockito.anyString())).thenReturn(mockPreparedStatement);
   }
 
