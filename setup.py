@@ -20,9 +20,7 @@ import sys
 
 from setuptools import setup
 
-install_requires = []
-if not sys.platform.lower().startswith('java'):
-    install_requires.append('JPype1')
+install_requires = ['JPype1 ; platform_python_implementation != "Jython"']
 
 setup(
     #basic package data
