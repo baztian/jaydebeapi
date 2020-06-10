@@ -41,9 +41,9 @@ class MockTest(unittest.TestCase):
             if isinstance(db_api_type, jaydebeapi.DBAPITypeObject):
                 for jsql_type_name in db_api_type.values:
                     self.conn.jconn.mockType(jsql_type_name)
-                    cursor = self.conn.cursor()
-                    cursor.execute("dummy stmt")
-                    cursor.fetchone()
+                    with self.conn.cursor() as cursor:
+                        cursor.execute("dummy stmt")
+                        cursor.fetchone()
                     verify = self.conn.jconn.verifyResultSet()
                     verify_get = getattr(verify,
                                          extra_type_mappings.get(jsql_type_name,
@@ -52,49 +52,49 @@ class MockTest(unittest.TestCase):
 
     def test_ancient_date_mapped(self):
         self.conn.jconn.mockDateResult(1899, 12, 31)
-        cursor = self.conn.cursor()
-        cursor.execute("dummy stmt")
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("dummy stmt")
+            result = cursor.fetchone()
         self.assertEquals(result[0], "1899-12-31")
 
     def test_decimal_scale_zero(self):
         self.conn.jconn.mockBigDecimalResult(12345, 0)
-        cursor = self.conn.cursor()
-        cursor.execute("dummy stmt")
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("dummy stmt")
+            result = cursor.fetchone()
         self.assertEquals(str(result[0]), "12345")
 
     def test_decimal_places(self):
         self.conn.jconn.mockBigDecimalResult(12345, 1)
-        cursor = self.conn.cursor()
-        cursor.execute("dummy stmt")
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("dummy stmt")
+            result = cursor.fetchone()
         self.assertEquals(str(result[0]), "1234.5")
 
     def test_double_decimal(self):
         self.conn.jconn.mockDoubleDecimalResult(1234.5)
-        cursor = self.conn.cursor()
-        cursor.execute("dummy stmt")
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("dummy stmt")
+            result = cursor.fetchone()
         self.assertEquals(str(result[0]), "1234.5")
 
     def test_sql_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.sql.SQLException", "expected")
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute("dummy stmt")
-            self.fail("expected exception")
-        except jaydebeapi.DatabaseError as e:
-            self.assertEquals(str(e), "java.sql.SQLException: expected")
+        with self.conn.cursor() as cursor:
+            try:
+                cursor.execute("dummy stmt")
+                self.fail("expected exception")
+            except jaydebeapi.DatabaseError as e:
+                self.assertEquals(str(e), "java.sql.SQLException: expected")
 
     def test_runtime_exception_on_execute(self):
         self.conn.jconn.mockExceptionOnExecute("java.lang.RuntimeException", "expected")
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute("dummy stmt")
-            self.fail("expected exception")
-        except jaydebeapi.InterfaceError as e:
-            self.assertEquals(str(e), "java.lang.RuntimeException: expected")
+        with self.conn.cursor() as cursor:
+            try:
+                cursor.execute("dummy stmt")
+                self.fail("expected exception")
+            except jaydebeapi.InterfaceError as e:
+                self.assertEquals(str(e), "java.lang.RuntimeException: expected")
 
     def test_sql_exception_on_commit(self):
         self.conn.jconn.mockExceptionOnCommit("java.sql.SQLException", "expected")

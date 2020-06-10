@@ -517,10 +517,6 @@ class Cursor(object):
         self._meta = None
         self._description = None
 
-    # TODO: this is a possible way to close the open result sets
-    # but I'm not sure when __del__ will be called
-    __del__ = _close_last
-
     def _set_stmt_parms(self, prep_stmt, parameters):
         for i in range(len(parameters)):
             # print (i, parameters[i], type(parameters[i]))

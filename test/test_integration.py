@@ -53,9 +53,9 @@ class IntegrationTestBase(object):
             if ";" in i:
                 stmts.append(" ".join(stmt))
                 stmt = []
-        cursor = self.conn.cursor()
-        for i in stmts:
-            cursor.execute(i)
+        with self.conn.cursor() as cursor:
+            for i in stmts:
+                cursor.execute(i)
 
     def setUp(self):
         (self.dbapi, self.conn) = self.connect()
@@ -68,36 +68,37 @@ class IntegrationTestBase(object):
         raise NotImplementedError
 
     def tearDown(self):
-        cursor = self.conn.cursor()
-        cursor.execute("drop table ACCOUNT");
+        with self.conn.cursor() as cursor:
+            cursor.execute("drop table ACCOUNT")
         self.conn.close()
 
     def test_execute_and_fetch_no_data(self):
-        cursor = self.conn.cursor()
-        stmt = "select * from ACCOUNT where ACCOUNT_ID is null"
-        cursor.execute(stmt)
-        self.assertEqual(cursor.fetchall(), [])
+        with self.conn.cursor() as cursor:
+            stmt = "select * from ACCOUNT where ACCOUNT_ID is null"
+            cursor.execute(stmt)
+            result = cursor.fetchall()
+        self.assertEqual(result, [])
 
     def test_execute_and_fetch(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
-                       "from ACCOUNT")
-        result = cursor.fetchall()
+        with self.conn.cursor() as cursor:
+            cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                        "from ACCOUNT")
+            result = cursor.fetchall()
         self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None),
                                   (u'2009-09-11 14:15:22.123456', 19, 12.9, 1)])
 
     def test_execute_and_fetch_parameter(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
-                       "from ACCOUNT where ACCOUNT_NO = ?", (18,))
-        result = cursor.fetchall()
+        with self.conn.cursor() as cursor:
+            cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                        "from ACCOUNT where ACCOUNT_NO = ?", (18,))
+            result = cursor.fetchall()
         self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)])
 
     def test_execute_and_fetchone(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
-                       "from ACCOUNT order by ACCOUNT_NO")
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                        "from ACCOUNT order by ACCOUNT_NO")
+            result = cursor.fetchone()
         self.assertEqual(result, (u'2009-09-10 14:15:22.123456', 18, 12.4, None))
         cursor.close()
 
@@ -105,25 +106,25 @@ class IntegrationTestBase(object):
         """Expect the descriptions property being reset when no query
         has been made via execute method.
         """
-        cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT")
-        self.assertIsNotNone(cursor.description)
-        cursor.fetchone()
-        cursor.execute("delete from ACCOUNT")
-        self.assertIsNone(cursor.description)
+        with self.conn.cursor() as cursor:
+            cursor.execute("select * from ACCOUNT")
+            self.assertIsNotNone(cursor.description)
+            cursor.fetchone()
+            cursor.execute("delete from ACCOUNT")
+            self.assertIsNone(cursor.description)
 
     def test_execute_and_fetchone_after_end(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
-        cursor.fetchone()
-        result = cursor.fetchone()
+        with self.conn.cursor() as cursor:
+            cursor.execute("select * from ACCOUNT where ACCOUNT_NO = ?", (18,))
+            cursor.fetchone()
+            result = cursor.fetchone()
         self.assertIsNone(result)
 
     def test_execute_and_fetchmany(self):
-        cursor = self.conn.cursor()
-        cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
-                       "from ACCOUNT order by ACCOUNT_NO")
-        result = cursor.fetchmany()
+        with self.conn.cursor() as cursor:
+            cursor.execute("select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING " \
+                        "from ACCOUNT order by ACCOUNT_NO")
+            result = cursor.fetchmany()
         self.assertEqual(result, [(u'2009-09-10 14:15:22.123456', 18, 12.4, None)])
         # TODO: find out why this cursor has to be closed in order to
         # let this test work with sqlite if __del__ is not overridden
@@ -131,7 +132,6 @@ class IntegrationTestBase(object):
         # cursor.close()
 
     def test_executemany(self):
-        cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
                "values (?, ?, ?)"
         parms = (
@@ -139,11 +139,11 @@ class IntegrationTestBase(object):
             ( '2009-09-11 14:15:22.123451', 21, 13.2 ),
             ( '2009-09-11 14:15:22.123452', 22, 13.3 ),
             )
-        cursor.executemany(stmt, parms)
-        self.assertEqual(cursor.rowcount, 3)
+        with self.conn.cursor() as cursor:
+            cursor.executemany(stmt, parms)
+            self.assertEqual(cursor.rowcount, 3)
 
     def test_execute_types(self):
-        cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
                "BLOCKING, DBL_COL, OPENED_AT, VALID, PRODUCT_NAME) " \
                "values (?, ?, ?, ?, ?, ?, ?, ?)"
@@ -158,20 +158,19 @@ class IntegrationTestBase(object):
         product_name = u'Savings account'
         parms = (account_id, account_no, balance, blocking, dbl_col,
                  opened_at, valid, product_name)
-        cursor.execute(stmt, parms)
-        stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING, " \
-               "DBL_COL, OPENED_AT, VALID, PRODUCT_NAME " \
-               "from ACCOUNT where ACCOUNT_NO = ?"
-        parms = (20, )
-        cursor.execute(stmt, parms)
-        result = cursor.fetchone()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            cursor.execute(stmt, parms)
+            stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, BLOCKING, " \
+                "DBL_COL, OPENED_AT, VALID, PRODUCT_NAME " \
+                "from ACCOUNT where ACCOUNT_NO = ?"
+            parms = (20, )
+            cursor.execute(stmt, parms)
+            result = cursor.fetchone()
         exp = ( '2010-01-26 14:31:59', account_no, balance, blocking,
                  dbl_col, '2008-02-27', valid, product_name )
         self.assertEqual(result, exp)
 
     def test_execute_type_time(self):
-        cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
                "OPENED_AT_TIME) " \
                "values (?, ?, ?, ?)"
@@ -181,31 +180,31 @@ class IntegrationTestBase(object):
         balance = 1.2
         opened_at_time = d.Time(13, 59, 59)
         parms = (account_id, account_no, balance, opened_at_time)
-        cursor.execute(stmt, parms)
-        stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, OPENED_AT_TIME " \
-               "from ACCOUNT where ACCOUNT_NO = ?"
-        parms = (20, )
-        cursor.execute(stmt, parms)
-        result = cursor.fetchone()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            cursor.execute(stmt, parms)
+            stmt = "select ACCOUNT_ID, ACCOUNT_NO, BALANCE, OPENED_AT_TIME " \
+                "from ACCOUNT where ACCOUNT_NO = ?"
+            parms = (20, )
+            cursor.execute(stmt, parms)
+            result = cursor.fetchone()
         exp = ( '2010-01-26 14:31:59', account_no, balance, '13:59:59' )
         self.assertEqual(result, exp)
 
     def test_execute_different_rowcounts(self):
-        cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE) " \
                "values (?, ?, ?)"
         parms = (
             ( '2009-09-11 14:15:22.123450', 20, 13.1 ),
             ( '2009-09-11 14:15:22.123452', 22, 13.3 ),
             )
-        cursor.executemany(stmt, parms)
-        self.assertEqual(cursor.rowcount, 2)
-        parms = ( '2009-09-11 14:15:22.123451', 21, 13.2 )
-        cursor.execute(stmt, parms)
-        self.assertEqual(cursor.rowcount, 1)
-        cursor.execute("select * from ACCOUNT")
-        self.assertEqual(cursor.rowcount, -1)
+        with self.conn.cursor() as cursor:
+            cursor.executemany(stmt, parms)
+            self.assertEqual(cursor.rowcount, 2)
+            parms = ( '2009-09-11 14:15:22.123451', 21, 13.2 )
+            cursor.execute(stmt, parms)
+            self.assertEqual(cursor.rowcount, 1)
+            cursor.execute("select * from ACCOUNT")
+            self.assertEqual(cursor.rowcount, -1)
 
 class SqliteTestBase(IntegrationTestBase):
 
@@ -214,18 +213,17 @@ class SqliteTestBase(IntegrationTestBase):
         self.sql_file(os.path.join(_THIS_DIR, 'data', 'insert.sql'))
 
     def test_execute_type_blob(self):
-        cursor = self.conn.cursor()
         stmt = "insert into ACCOUNT (ACCOUNT_ID, ACCOUNT_NO, BALANCE, " \
                "STUFF) values (?, ?, ?, ?)"
         binary_stuff = 'abcdef'.encode('UTF-8')
         stuff = self.dbapi.Binary(binary_stuff)
         parms = ('2009-09-11 14:15:22.123450', 20, 13.1, stuff)
-        cursor.execute(stmt, parms)
-        stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
-        parms = (20, )
-        cursor.execute(stmt, parms)
-        result = cursor.fetchone()
-        cursor.close()
+        with self.conn.cursor() as cursor:
+            cursor.execute(stmt, parms)
+            stmt = "select STUFF from ACCOUNT where ACCOUNT_NO = ?"
+            parms = (20, )
+            cursor.execute(stmt, parms)
+            result = cursor.fetchone()
         value = result[0]
         self.assertEqual(value, memoryview(binary_stuff))
 
