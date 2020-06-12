@@ -170,6 +170,7 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.2.3 - 2020-06-12
 
   - Make pip install for Python 2 work by changing JPype1 requirement to older
     version

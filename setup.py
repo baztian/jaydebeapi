@@ -27,7 +27,7 @@ install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implem
 setup(
     #basic package data
     name = 'JayDeBeApi',
-    version = '1.2.2',
+    version = '1.2.3',
     author = 'Bastian Bowe',
     author_email = 'bastian.dev@gmail.com',
     license = 'GNU LGPL',
