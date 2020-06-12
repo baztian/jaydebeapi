@@ -95,9 +95,9 @@ Here is an example:
 ...                           "/path/to/hsqldb.jar",)
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
-...                '("CUST_ID" INTEGER not null,'
-...                ' "NAME" VARCHAR(50) not null,'
-...                ' primary key ("CUST_ID"))'
+...              '("CUST_ID" INTEGER not null,'
+...              ' "NAME" VARCHAR(50) not null,'
+...              ' primary key ("CUST_ID"))'
 ...             )
 >>> curs.execute("insert into CUSTOMER values (1, 'John')")
 >>> curs.execute("select * from CUSTOMER")
@@ -105,6 +105,12 @@ Here is an example:
 [(1, u'John')]
 >>> curs.close()
 >>> conn.close()
+
+If you're having trouble getting this work check if your ``JAVA_HOME``
+environmentvariable is set correctly. For example I have to set it on
+my Ubuntu machine like this ::
+
+    $ JAVA_HOME=/usr/lib/jvm/java-8-openjdk python
 
 An alternative way to establish connection using connection
 properties:
@@ -115,12 +121,16 @@ properties:
 ...                            'other_property': "foobar"},
 ...                           "/path/to/hsqldb.jar",)
 
+Also using the ``with`` statement might be handy:
 
-If you're having trouble getting this work check if your ``JAVA_HOME``
-environmentvariable is set correctly. For example I have to set it on
-my Ubuntu machine like this ::
-
-    $ JAVA_HOME=/usr/lib/jvm/java-8-openjdk python
+>>> with jaydebeapi.connect("org.hsqldb.jdbcDriver",
+...                         "jdbc:hsqldb:mem:.",
+...                         ["SA", ""],
+...                         "/path/to/hsqldb.jar",) as conn:
+...     with conn.cursor() as curs:
+...         curs.execute("select count(*) from CUSTOMER")
+...         curs.fetchall()
+[(1,)]
 
 Supported databases
 ===================
@@ -164,6 +174,8 @@ Changelog
   - Make pip install for Python 2 work by changing JPype1 requirement to older
     version
   - Make pip install for Jython work by removing JPype1 requirement for Jython
+  - Removed cursor destructor to avoid issues with some JPype versions (please
+    make sure you're always closing your cursors properly)
 
 - 1.2.2 - 2020-06-04
 
