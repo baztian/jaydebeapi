@@ -174,7 +174,8 @@ Changelog
   - Make pip install for Python 2 work by changing JPype1 requirement to older
     version
   - Make pip install for Jython work by removing JPype1 requirement for Jython
-  - Removed cursor destructor to avoid issues with some JPype versions
+  - Removed cursor destructor to avoid issues with some JPype versions (please
+    make sure you're always closing your cursors properly)
 
 - 1.2.2 - 2020-06-04
 
