@@ -20,7 +20,9 @@ import sys
 
 from setuptools import setup
 
-install_requires = ['JPype1 ; platform_python_implementation != "Jython"']
+install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implementation != "Jython"',
+                     'JPype1<=0.7.1 ; python_version <= "2.7" and platform_python_implementation != "Jython"',
+                    ]
 
 setup(
     #basic package data
