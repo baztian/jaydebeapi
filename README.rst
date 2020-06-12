@@ -160,6 +160,11 @@ Changelog
 =========
 
 - Next version - unreleased
+
+  - Make pip install for Python 2 work by changing JPype1 requirement to older
+    version
+  - Make pip install for Jython work by removing JPype1 requirement for Jython
+
 - 1.2.2 - 2020-06-04
 
   - Return (big) decimal types as long value if scale is zero (thanks
