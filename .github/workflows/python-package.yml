@@ -16,6 +16,12 @@ jobs:
     strategy:
       matrix:
         python-version: [2.7, 3.5, 3.6]
+        plattform: ["Python"]
+        include:
+          - python-version: 3.6
+            plattform: "Jython"
+            jython: org.python:jython-installer:2.7.2
+            toxenv: "jython-driver-{hsqldb,mock}"
 
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +29,18 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Consider Jython
+      run: |
+        ci/before_install_jython.sh
+      if: matrix.jython
+      env:
+        JYTHON: ${{ matrix.jython }}
     - name: Install dependencies
-      run: pip install coveralls tox tox-gh-actions
-    - name: Test with tox
+      # for some reason installing from https://github.com/baztian/tox-gh-actions/archive/allow-env-override.tar.gz doesn't work
+      run: pip install coveralls tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
+    - name: Test with tox for Jython only
+      if: matrix.jython
+      run: tox -e "${{ matrix.toxenv }}"
+    - name: Test with tox for non Jython only
+      if: ${{ ! matrix.jython }}
       run: tox
