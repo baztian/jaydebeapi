@@ -41,8 +41,7 @@ plug-in mechanism.
 Install
 =======
 
-You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_
-::
+You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_ ::
 
     $ pip install JayDeBeApi
 
