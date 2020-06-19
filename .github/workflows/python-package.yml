@@ -37,15 +37,30 @@ jobs:
         JYTHON: ${{ matrix.jython }}
     - name: Install dependencies
       # for some reason installing from https://github.com/baztian/tox-gh-actions/archive/allow-env-override.tar.gz doesn't work
-      run: pip install tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
+      run: pip install coveralls tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
     - name: Test with tox for Jython only
       if: matrix.jython
       run: tox -e "${{ matrix.toxenv }}"
     - name: Test with tox for non Jython only
       if: ${{ ! matrix.jython }}
       run: tox
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
+    - name: Coveralls Parallel
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # required due to https://github.com/coverallsapp/github-action/issues/50
+        COVERALLS_FLAG_NAME: run-${{ matrix.python-version }}-${{ matrix.plattform }}
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        path-to-lcov: .coverage
+        # flag-name: run-${{ matrix.python-version }}-${{ matrix.plattform }}
+        parallel: true
+
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true

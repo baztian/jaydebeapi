@@ -5,6 +5,9 @@
 .. image:: https://github.com/baztian/jaydebeapi/workflows/CI/badge.svg
    :target: https://github.com/baztian/jaydebeapi/actions
 
+.. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
+    :target: https://coveralls.io/r/baztian/jaydebeapi
+
 .. image:: https://img.shields.io/badge/python-2.7,_3.5,_3.6-blue.svg
     :target: https://pypi.python.org/pypi/JayDeBeApi/
 
