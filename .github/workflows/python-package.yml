@@ -44,3 +44,5 @@ jobs:
     - name: Test with tox for non Jython only
       if: ${{ ! matrix.jython }}
       run: tox
+    - name: Run coveralls
+      run: coveralls
