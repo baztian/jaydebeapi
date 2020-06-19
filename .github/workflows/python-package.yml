@@ -45,15 +45,17 @@ jobs:
       if: ${{ ! matrix.jython }}
       run: tox
     - name: Coveralls
-      uses: AndreMiras/coveralls-python-action@v20200413
+      uses: baztian/coveralls-python-action@supply-coverage-version
       with:
         parallel: true
+        coverage-version: 4.5.4
 
   coveralls_finish:
     needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: AndreMiras/coveralls-python-action@v20200413
+      uses: baztian/coveralls-python-action@supply-coverage-version
       with:
         parallel-finished: true
+        coverage-version: 4.5.4
