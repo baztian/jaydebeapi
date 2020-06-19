@@ -2,8 +2,8 @@
  JayDeBeApi - bridge from JDBC database drivers to Python DB-API
 =================================================================
 
-.. image:: https://img.shields.io/travis/baztian/jaydebeapi/master.svg
-   :target: https://travis-ci.org/baztian/jaydebeapi
+.. image:: https://github.com/baztian/jaydebeapi/workflows/CI/badge.svg
+   :target: https://github.com/baztian/jaydebeapi/actions
 
 .. image:: https://img.shields.io/coveralls/baztian/jaydebeapi/master.svg
     :target: https://coveralls.io/r/baztian/jaydebeapi

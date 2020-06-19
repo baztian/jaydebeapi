@@ -45,10 +45,13 @@ jobs:
       if: ${{ ! matrix.jython }}
       run: tox
     - name: Coveralls Parallel
+      env:
+        # required due to https://github.com/coverallsapp/github-action/issues/50
+        COVERALLS_FLAG_NAME: run-${{ matrix.python-version }}-${{ matrix.plattform }}
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
-        flag-name: run-${{ matrix.python-version }}-${{ matrix.plattform }}
+        # flag-name: run-${{ matrix.python-version }}-${{ matrix.plattform }}
         parallel: true
 
   finish:
