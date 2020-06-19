@@ -44,23 +44,16 @@ jobs:
     - name: Test with tox for non Jython only
       if: ${{ ! matrix.jython }}
       run: tox
-    - name: Coveralls Parallel
-      env:
-        # required due to https://github.com/coverallsapp/github-action/issues/50
-        COVERALLS_FLAG_NAME: run-${{ matrix.python-version }}-${{ matrix.plattform }}
-      uses: coverallsapp/github-action@master
+    - name: Coveralls
+      uses: AndreMiras/coveralls-python-action@v20200413
       with:
-        github-token: ${{ secrets.github_token }}
-        path-to-lcov: .coverage
-        # flag-name: run-${{ matrix.python-version }}-${{ matrix.plattform }}
         parallel: true
 
-  finish:
+  coveralls_finish:
     needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
+      uses: AndreMiras/coveralls-python-action@v20200413
       with:
-        github-token: ${{ secrets.github_token }}
         parallel-finished: true
