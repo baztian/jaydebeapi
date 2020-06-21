@@ -45,9 +45,10 @@ jobs:
       if: ${{ ! matrix.jython }}
       run: tox
     - name: Coveralls
-      uses: baztian/coveralls-python-action@supply-coverage-version
+      uses: baztian/coveralls-python-action@merged-changes
       with:
         parallel: true
+        flag-name: ${{ matrix.plattform }}-${{ matrix.python-version }}
         coverage-version: 4.5.4
 
   coveralls_finish:
@@ -55,6 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: baztian/coveralls-python-action@supply-coverage-version
+      uses: baztian/coveralls-python-action@merged-changes
       with:
         parallel-finished: true
