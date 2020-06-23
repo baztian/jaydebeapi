@@ -29,28 +29,22 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/cache@v1
+    - name: Maven cache
+      uses: actions/cache@v1
       with:
         path: .tox/shared/.m2
         key: ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-
-
-    - uses: actions/cache@v1
-      with:
-        path: .tox/shared/.m2
-        key: ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-
-
-    - uses: actions/cache@v2
+    - name: Pip cache
+      uses: actions/cache@v2
       with:
         path: ~/.cache/pip
         key: ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/*requirements.txt', 'tox.ini', 'setup.py') }}
         restore-keys: |
           ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-
-
-    - uses: actions/cache@v2
+    - name: Jython installation cache
+      uses: actions/cache@v2
       with:
         path: ~/jython
         key: ${{ matrix.jython }}-jython
