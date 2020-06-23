@@ -59,4 +59,3 @@ jobs:
       uses: baztian/coveralls-python-action@merged-changes
       with:
         parallel-finished: true
-        flag-name: dummy
