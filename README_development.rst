@@ -52,7 +52,7 @@ Build a new release
      $ git commit -m "my comment"
      $ git push
 
-5. Wait for travis CI build to finish successfully.
+5. Wait for GitHub Actions build to finish successfully.
 
 6. Bump version ::
 
