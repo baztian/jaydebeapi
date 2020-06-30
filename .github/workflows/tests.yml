@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.5, 3.6]
+        python-version: [2.7, 3.5, 3.6, 3.8]
         plattform: ["Python"]
         include:
-          - python-version: 3.6
+          - python-version: 3.8
             plattform: "Jython"
             jython: org.python:jython-installer:2.7.2
             toxenv: "jython-driver-{hsqldb,mock}"
