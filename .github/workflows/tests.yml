@@ -1,0 +1,82 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7, 3.5, 3.6, 3.8]
+        plattform: ["Python"]
+        include:
+          - python-version: 3.8
+            plattform: "Jython"
+            jython: org.python:jython-installer:2.7.2
+            toxenv: "jython-driver-{hsqldb,mock}"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Maven cache
+      uses: actions/cache@v1
+      with:
+        path: .tox/shared/.m2
+        key: ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-
+    - name: Pip cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/*requirements.txt', 'tox.ini', 'setup.py') }}
+        restore-keys: |
+          ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-
+    - name: Jython installation cache
+      uses: actions/cache@v2
+      with:
+        path: ~/jython
+        key: ${{ matrix.jython }}-jython
+      if: matrix.jython
+
+    - name: Consider Jython
+      run: |
+        ci/before_install_jython.sh
+      if: matrix.jython
+      env:
+        JYTHON: ${{ matrix.jython }}
+    - name: Install dependencies
+      # for some reason installing from https://github.com/baztian/tox-gh-actions/archive/allow-env-override.tar.gz doesn't work
+      run: pip install coveralls tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
+    - name: Test with tox for Jython only
+      if: matrix.jython
+      run: tox -e "${{ matrix.toxenv }}"
+    - name: Test with tox for non Jython only
+      if: ${{ ! matrix.jython }}
+      run: tox
+    - name: Coveralls
+      uses: baztian/coveralls-python-action@new-merged-changes
+      with:
+        parallel: true
+        flag-name: ${{ matrix.plattform }}-${{ matrix.python-version }}
+        coverage-version: 4.5.4
+
+  coveralls_finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: baztian/coveralls-python-action@new-merged-changes
+      with:
+        parallel-finished: true
