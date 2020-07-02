@@ -41,8 +41,7 @@ plug-in mechanism.
 Install
 =======
 
-You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_
-::
+You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_ ::
 
     $ pip install JayDeBeApi
 
@@ -100,7 +99,7 @@ Here is an example:
 ...              ' "NAME" VARCHAR(50) not null,'
 ...              ' primary key ("CUST_ID"))'
 ...             )
->>> curs.execute("insert into CUSTOMER values (1, 'John')")
+>>> curs.execute("insert into CUSTOMER values (?, ?)", (1, 'John'))
 >>> curs.execute("select * from CUSTOMER")
 >>> curs.fetchall()
 [(1, u'John')]
