@@ -194,7 +194,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
                 pass
         if old_jpype:
             jpype.startJVM(jvm_path, *args)
-        else:
+        elif not jpype.isJVMStarted():
             jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
                            convertStrings=True)
     if not jpype.isThreadAttachedToJVM():
