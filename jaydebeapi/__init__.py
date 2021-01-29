@@ -680,6 +680,8 @@ _to_int = _java_to_py('intValue')
 
 _to_boolean = _java_to_py('booleanValue')
 
+_to_string = _java_to_py('toString')
+
 _to_decimal = _java_to_py_bigdecimal()
 
 def _init_types(types_map):
@@ -719,5 +721,6 @@ _DEFAULT_CONVERTERS = {
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
     'BOOLEAN': _to_boolean,
-    'BIT': _to_boolean
+    'BIT': _to_boolean,
+    'OTHER': _to_string
 }
