@@ -53,18 +53,13 @@ _java_array_byte = None
 
 _handle_sql_exception = None
 
-old_jpype = False
 
 
 def _handle_sql_exception_jpype():
     import jpype
     SQLException = jpype.java.sql.SQLException
     exc_info = sys.exc_info()
-    if old_jpype:
-        clazz = exc_info[1].__javaclass__
-        db_err = issubclass(clazz, SQLException)
-    else:
-        db_err = isinstance(exc_info[1], SQLException)
+    db_err = isinstance(exc_info[1], SQLException)
 
     if db_err:
         exc_type = DatabaseError
@@ -82,6 +77,35 @@ def _add_to_classpath(jar):
     url = file.toURI.toURL()
 
     a = 1
+
+def _start_jvm(cls, jvm_path, jvm_options, driver_path, log4j_conf):
+    import jpype
+    if jvm_path is None:
+        jvm_path = jpype.get_default_jvm_path()
+    if driver_path is None:
+        driver_path = os.path.join(cls._BASE_PATH, ATHENA_JAR)
+    if log4j_conf is None:
+        log4j_conf = os.path.join(cls._BASE_PATH, LOG4J_PROPERTIES)
+    if not jpype.isJVMStarted():
+        # _logger.debug('JVM path: %s', jvm_path)
+        args = [
+            '-server',
+            '-Djava.class.path={0}'.format(driver_path),
+            '-Dlog4j.configuration=file:{0}'.format(log4j_conf)
+        ]
+        if jvm_options:
+            args.extend(jvm_options)
+        # _logger.debug('JVM args: %s', args)
+        jpype.startJVM(jvm_path, *args)
+        cls.class_loader = jpype.java.lang.Thread.currentThread().getContextClassLoader()
+    if not jpype.isThreadAttachedToJVM():
+        jpype.attachThreadToJVM()
+        if not cls.class_loader:
+            cls.class_loader = jpype.java.lang.Thread.currentThread().getContextClassLoader()
+        class_loader = jpype.java.net.URLClassLoader.newInstance(
+            [jpype.java.net.URL('jar:file:{0}!/'.format(driver_path))],
+            cls.class_loader)
+        jpype.java.lang.Thread.currentThread().setContextClassLoader(class_loader)
 
 
 def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
@@ -102,20 +126,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         # jvm_path = ('/usr/lib/jvm/java-6-openjdk'
         #             '/jre/lib/i386/client/libjvm.so')
         jvm_path = jpype.getDefaultJVMPath()
-        global old_jpype
-        if hasattr(jpype, '__version__'):
-            try:
-                ver_match = re.match('\d+\.\d+', jpype.__version__)
-                if ver_match:
-                    jpype_ver = float(ver_match.group(0))
-                    if jpype_ver < 0.7:
-                        old_jpype = True
-            except ValueError:
-                pass
-        if old_jpype:
-            jpype.startJVM(jvm_path, *args)
-        else:
-            jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
+        jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
                            convertStrings=True)
     else:
         # Add jars to the classpath at runtime
@@ -126,15 +137,10 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
-        if old_jpype:
-            for i in types.__javaclass__.getClassFields():
-                const = i.getStaticAttribute()
+        for i in types.class_.getFields():
+            if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
+                const = i.get(None)
                 types_map[i.getName()] = const
-        else:
-            for i in types.class_.getFields():
-                if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
-                    const = i.get(None)
-                    types_map[i.getName()] = const
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
@@ -151,6 +157,10 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     else:
         dargs = driver_args
     return jpype.java.sql.DriverManager.getConnection(url, *dargs)
+
+
+
+
 
 
 def _get_classpath():
