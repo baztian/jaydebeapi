@@ -29,6 +29,10 @@ import sys
 import warnings
 
 
+CLASSLOADER_JAR = os.path.join(os.path.dirname(__file__), "DynamicClassLoader.jar")
+
+print(f'{CLASSLOADER_JAR=}')
+
 def reraise(tp, value, tb=None):
     if value is None:
         value = tp()
@@ -54,7 +58,6 @@ _java_array_byte = None
 _handle_sql_exception = None
 
 
-
 def _handle_sql_exception_jpype():
     import jpype
     SQLException = jpype.java.sql.SQLException
@@ -77,6 +80,7 @@ def _add_to_classpath(jar):
     url = file.toURI.toURL()
 
     a = 1
+
 
 def _start_jvm(cls, jvm_path, jvm_options, driver_path, log4j_conf):
     import jpype
@@ -108,8 +112,15 @@ def _start_jvm(cls, jvm_path, jvm_options, driver_path, log4j_conf):
         jpype.java.lang.Thread.currentThread().setContextClassLoader(class_loader)
 
 
-def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
+
+
+
+# _jar_set = set()
+
+def _jdbc_connect_jpype_dynamic_classpath(jclassname, url, driver_args, jars, libs):
     import jpype
+    global _classloader
+    # global _jar_set
     if not jpype.isJVMStarted():
         args = []
         class_path = []
@@ -117,23 +128,27 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
             class_path.extend(jars)
         class_path.extend(_get_classpath())
         if class_path:
-            args.append('-Djava.class.path=%s' %
-                        os.path.pathsep.join(class_path))
+            args.append('-Djava.class.path=%s' % os.path.pathsep.join([CLASSLOADER_JAR]))
+
         if libs:
             # path to shared libraries
             libs_path = os.path.pathsep.join(libs)
             args.append('-Djava.library.path=%s' % libs_path)
-        # jvm_path = ('/usr/lib/jvm/java-6-openjdk'
-        #             '/jre/lib/i386/client/libjvm.so')
+        args.append('-Djava.system.class.loader=DynamicClassLoader')
         jvm_path = jpype.getDefaultJVMPath()
         jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
-                           convertStrings=True)
-    else:
-        # Add jars to the classpath at runtime
-        pass
+                       convertStrings=True)
+
+    # Attach thread and class loader
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
         jpype.java.lang.Thread.currentThread().setContextClassLoader(jpype.java.lang.ClassLoader.getSystemClassLoader())
+
+    # update jar set
+    # for jar in jars:
+    #     _jar_set.add(jar)
+
+    # Java types
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
         types_map = {}
@@ -142,24 +157,32 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
                 const = i.get(None)
                 types_map[i.getName()] = const
         _init_types(types_map)
+
+    # Java array byte
     global _java_array_byte
     if _java_array_byte is None:
         def _java_array_byte(data):
             return jpype.JArray(jpype.JByte, 1)(data)
-    # register driver for DriverManager
-    jpype.JClass(jclassname)
+
     if isinstance(driver_args, dict):
-        Properties = jpype.java.util.Properties
+        # Properties = jpype.java.util.Properties
+        Properties = jpype.JClass('java.util.Properties', loader=_classloader)
         info = Properties()
         for k, v in driver_args.items():
             info.setProperty(k, v)
         dargs = [info]
     else:
         dargs = driver_args
+
+    classloader = jpype.java.lang.Thread.currentThread().getContextClassLoader()
+    jar_file_string_list = ['file:{0}'.format(jar_path) for jar_path in jars]
+    urls = [jpype.java.net.URL(jar_url) for jar_url in jar_file_string_list]
+    for jar_url in urls:
+        classloader.add(jar_url)
+
+    # register class
+    cl = jpype.JClass(jclassname)
     return jpype.java.sql.DriverManager.getConnection(url, *dargs)
-
-
-
 
 
 
@@ -186,10 +209,9 @@ def _jar_glob(item):
 
 def _prepare_jpype():
     global _jdbc_connect
-    _jdbc_connect = _jdbc_connect_jpype
+    _jdbc_connect = _jdbc_connect_jpype_dynamic_classpath
     global _handle_sql_exception
     _handle_sql_exception = _handle_sql_exception_jpype
-
 
 
 _prepare_jpype()

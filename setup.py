@@ -20,6 +20,7 @@ import sys
 
 from setuptools import setup
 
+# TODO leave JPPype1 only
 install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implementation != "Jython"',
                      'JPype1<=0.7.1 ; python_version <= "2.7" and platform_python_implementation != "Jython"',
                     ]
