@@ -621,7 +621,7 @@ def _to_datetime(rs, col):
     if not java_val:
         return
     d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
-    d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
+    d = d.replace(microsecond=int(str(java_val.getNanos()).zfill(9)[:6]))
     return str(d)
 
 def _to_time(rs, col):
