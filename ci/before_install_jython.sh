@@ -8,3 +8,6 @@ if [ ! -d "$INST_DIR" ]; then
 fi
 pip install --upgrade virtualenv==15.1.0 tox==3.9.0
 sudo ln -s "$INST_DIR"/bin/jython /usr/local/bin/
+which jython
+jython --version
+echo "WHICH"
