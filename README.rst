@@ -91,8 +91,8 @@ Here is an example:
 >>> import jaydebeapi
 >>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
-...                           ["SA", ""],
-...                           "/path/to/hsqldb.jar",)
+...                           driver_args=["SA", ""],
+...                           jars="/path/to/hsqldb.jar",)
 >>> curs = conn.cursor()
 >>> curs.execute('create table CUSTOMER'
 ...              '("CUST_ID" INTEGER not null,'
@@ -117,16 +117,16 @@ properties:
 
 >>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
-...                           {'user': "SA", 'password': "",
+...                           driver_args={'user': "SA", 'password': "",
 ...                            'other_property': "foobar"},
-...                           "/path/to/hsqldb.jar",)
+...                           jars="/path/to/hsqldb.jar",)
 
 Also using the ``with`` statement might be handy:
 
 >>> with jaydebeapi.connect("org.hsqldb.jdbcDriver",
 ...                         "jdbc:hsqldb:mem:.",
-...                         ["SA", ""],
-...                         "/path/to/hsqldb.jar",) as conn:
+...                         driver_args=["SA", ""],
+...                         jars="/path/to/hsqldb.jar",) as conn:
 ...     with conn.cursor() as curs:
 ...         curs.execute("select count(*) from CUSTOMER")
 ...         curs.fetchall()
