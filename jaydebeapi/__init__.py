@@ -85,7 +85,7 @@ def _handle_sql_exception_jython():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
+def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs, java_opts):
     if _jdbc_name_to_const is None:
         from java.sql import Types
         types = Types
@@ -164,7 +164,7 @@ def _handle_sql_exception_jpype():
         
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
+def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs, java_opts):
     import jpype
     if not jpype.isJVMStarted():
         args = []
@@ -175,6 +175,9 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         if class_path:
             args.append('-Djava.class.path=%s' %
                         os.path.pathsep.join(class_path))
+        if java_opts:
+            for arg in java_opts:
+                args.append(arg)
         if libs:
             # path to shared libraries
             libs_path = os.path.pathsep.join(libs)
@@ -378,7 +381,7 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, url, driver_args=None, jars=None, libs=None):
+def connect(jclassname, url, driver_args=None, jars=None, libs=None, java_opts=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
@@ -394,11 +397,17 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     jars: Jar filename or sequence of filenames for the JDBC driver
     libs: Dll/so filenames or sequence of dlls/sos used as shared
           library by the JDBC driver
+    java_opts: List of JVM options with format %option%=%value%.
+          Only works with jpype
     """
     if isinstance(driver_args, string_type):
         driver_args = [ driver_args ]
     if not driver_args:
        driver_args = []
+    if isinstance(java_opts, string_type):
+        java_opts = [ java_opts ]
+    if not java_opts:
+       java_opts = []
     if jars:
         if isinstance(jars, string_type):
             jars = [ jars ]
@@ -409,7 +418,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
             libs = [ libs ]
     else:
         libs = []
-    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
+    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs, java_opts)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
