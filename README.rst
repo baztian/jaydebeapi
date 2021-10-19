@@ -107,7 +107,7 @@ Here is an example:
 >>> conn.close()
 
 If you're having trouble getting this work check if your ``JAVA_HOME``
-environmentvariable is set correctly. For example I have to set it on
+environment variable is set correctly. For example I have to set it on
 my Ubuntu machine like this ::
 
     $ JAVA_HOME=/usr/lib/jvm/java-8-openjdk python
