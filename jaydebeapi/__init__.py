@@ -85,7 +85,7 @@ def _handle_sql_exception_jython():
         exc_type = InterfaceError
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
+def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs, jvm_args):
     if _jdbc_name_to_const is None:
         from java.sql import Types
         types = Types
@@ -164,10 +164,10 @@ def _handle_sql_exception_jpype():
         
     reraise(exc_type, exc_info[1], exc_info[2])
 
-def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
+def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs, jvm_args):
     import jpype
     if not jpype.isJVMStarted():
-        args = []
+        args = jvm_args or []
         class_path = []
         if jars:
             class_path.extend(jars)
@@ -378,7 +378,7 @@ def TimestampFromTicks(ticks):
     return apply(Timestamp, time.localtime(ticks)[:6])
 
 # DB-API 2.0 Module Interface connect constructor
-def connect(jclassname, url, driver_args=None, jars=None, libs=None):
+def connect(jclassname, url, driver_args=None, jars=None, libs=None, jvm_args=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
 
@@ -394,6 +394,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     jars: Jar filename or sequence of filenames for the JDBC driver
     libs: Dll/so filenames or sequence of dlls/sos used as shared
           library by the JDBC driver
+    jvm_args: additional JVM arguments to be passed
     """
     if isinstance(driver_args, string_type):
         driver_args = [ driver_args ]
@@ -409,7 +410,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
             libs = [ libs ]
     else:
         libs = []
-    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
+    jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs, jvm_args)
     return Connection(jconn, _converters)
 
 # DB-API 2.0 Connection Object
