@@ -185,7 +185,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         global old_jpype
         if hasattr(jpype, '__version__'):
             try:
-                ver_match = re.match('\d+\.\d+', jpype.__version__)
+                ver_match = re.match(r'\d+\.\d+', jpype.__version__)
                 if ver_match:
                     jpype_ver = float(ver_match.group(0))
                     if jpype_ver < 0.7:
@@ -197,8 +197,8 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         else:
             jpype.startJVM(jvm_path, *args, ignoreUnrecognized=True,
                            convertStrings=True)
-    if not jpype.isThreadAttachedToJVM():
-        jpype.attachThreadToJVM()
+    if not jpype.java.lang.Thread.isAttached():
+        jpype.java.lang.Thread.attach()
         jpype.java.lang.Thread.currentThread().setContextClassLoader(jpype.java.lang.ClassLoader.getSystemClassLoader())
     if _jdbc_name_to_const is None:
         types = jpype.java.sql.Types
