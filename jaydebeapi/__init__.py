@@ -438,6 +438,8 @@ class Connection(object):
         self._closed = True
 
     def commit(self):
+        if self.jconn.getAutoCommit():
+            return
         try:
             self.jconn.commit()
         except:
