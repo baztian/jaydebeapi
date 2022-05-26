@@ -488,7 +488,7 @@ class Cursor(object):
                     dbapi_type = None
                 else:
                     dbapi_type = DBAPITypeObject._map_jdbc_type_to_dbapi(jdbc_type)
-                col_desc = ( m.getColumnName(col),
+                col_desc = ( m.getColumnLabel(col),
                              dbapi_type,
                              size,
                              size,
