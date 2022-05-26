@@ -170,6 +170,10 @@ Changelog
 =========
 
 - Next version - unreleased
+- 1.2.4 - 2022-05-26
+  - Fix returning the column label instead of the name, which accounts for
+    column aliasing in sql queries
+
 - 1.2.3 - 2020-06-12
 
   - Make pip install for Python 2 work by changing JPype1 requirement to older
