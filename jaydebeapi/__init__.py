@@ -17,7 +17,7 @@
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-__version_info__ = (1, 2, 3)
+__version_info__ = (1, 2, 4)
 __version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime
@@ -488,7 +488,7 @@ class Cursor(object):
                     dbapi_type = None
                 else:
                     dbapi_type = DBAPITypeObject._map_jdbc_type_to_dbapi(jdbc_type)
-                col_desc = ( m.getColumnName(col),
+                col_desc = ( m.getColumnLabel(col),
                              dbapi_type,
                              size,
                              size,
