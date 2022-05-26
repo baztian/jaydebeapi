@@ -84,7 +84,7 @@ class IntegrationTestBase(object):
             stmt = "select ACCOUNT_ID as `a_id` from ACCOUNT"
             cursor.execute(stmt)
             field_names = cursor.description
-            self.assertEqual(field_names[0], 'a_id')
+            self.assertEqual(field_names[0][0], 'a_id')
 
     def test_execute_and_fetch(self):
         with self.conn.cursor() as cursor:
