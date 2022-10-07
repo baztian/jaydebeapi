@@ -129,7 +129,6 @@ def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
 def _jython_set_classpath(jars):
     '''
     import a jar at runtime (needed for JDBC [Class.forName])
-
     adapted by Bastian Bowe from
     http://stackoverflow.com/questions/3015059/jython-classpath-sys-path-and-jdbc-drivers
     '''
@@ -381,7 +380,6 @@ def TimestampFromTicks(ticks):
 def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     """Open a connection to a database using a JDBC driver and return
     a Connection instance.
-
     jclassname: Full qualified Java class name of the JDBC driver.
     url: Database url as required by the JDBC driver.
     driver_args: Dictionary or sequence of arguments to be passed to
@@ -470,6 +468,7 @@ class Cursor(object):
     def __init__(self, connection, converters):
         self._connection = connection
         self._converters = converters
+        self._new = True
 
     @property
     def description(self):
@@ -553,7 +552,7 @@ class Cursor(object):
         self.rowcount = sum(update_counts)
         self._close_last()
 
-    def fetchone(self):
+    def fetchone(self, new=True):
         if not self._rs:
             raise Error()
         if not self._rs.next():
@@ -561,12 +560,15 @@ class Cursor(object):
         row = []
         for col in range(1, self._meta.getColumnCount() + 1):
             sqltype = self._meta.getColumnType(col)
-            converter = self._converters.get(sqltype, _unknownSqlTypeConverter)
-            v = converter(self._rs, col)
+            if new:
+                converter = self._converters.get((0,sqltype), _unknownSqlTypeConverter)
+            else:
+                converter = self._converters.get((1,sqltype), _unknownSqlTypeConverter)
+            v = converter(self._rs, col, new)
             row.append(v)
         return tuple(row)
 
-    def fetchmany(self, size=None):
+    def fetchmany(self, size=None, new=True):
         if not self._rs:
             raise Error()
         if size is None:
@@ -576,7 +578,7 @@ class Cursor(object):
         rows = []
         row = None
         for i in range(size):
-            row = self.fetchone()
+            row = self.fetchone(new)
             if row is None:
                 break
             else:
@@ -587,10 +589,10 @@ class Cursor(object):
             self._rs.setFetchSize(0)
         return rows
 
-    def fetchall(self):
+    def fetchall(self, new=True):
         rows = []
         while True:
-            row = self.fetchone()
+            row = self.fetchone(new)
             if row is None:
                 break
             else:
@@ -613,74 +615,123 @@ class Cursor(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-def _unknownSqlTypeConverter(rs, col):
+def _unknownSqlTypeConverter(rs, col, new):
     return rs.getObject(col)
 
-def _to_datetime(rs, col):
+
+
+
+def _to_datetime(rs, col, new):
     java_val = rs.getTimestamp(col)
     if not java_val:
         return
     d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
     d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
-    return str(d)
+    if new:
+        return d
+    else:
+        return str(d)
 
-def _to_time(rs, col):
+
+#return datetime object instead of a string
+def _to_time(rs, col, new):
     java_val = rs.getTime(col)
     if not java_val:
         return
-    return str(java_val)
+    d = datetime.datetime.strptime(str(java_val)[11:19], "%H:%M:%S")
+    return d
 
-def _to_date(rs, col):
+#return datetime object instead of a string
+def _to_date(rs, col, new):
     java_val = rs.getDate(col)
     if not java_val:
         return
     # The following code requires Python 3.3+ on dates before year 1900.
-    # d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
-    # return d.strftime("%Y-%m-%d")
+    if new:
+        d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
+        return d
     # Workaround / simpler soltution (see
     # https://github.com/baztian/jaydebeapi/issues/18):
     return str(java_val)[:10]
 
-def _to_binary(rs, col):
+def _to_binary(rs, col, new):
     java_val = rs.getObject(col)
     if java_val is None:
         return
     return str(java_val)
 
-def _java_to_py(java_method):
-    def to_py(rs, col):
+#primitive datatypes. Instead of returning a java object we return a python datatype
+def _java_to_py(java_method, new):
+    def to_py(rs, col, new):
         java_val = rs.getObject(col)
         if java_val is None:
             return
         if PY2 and isinstance(java_val, (string_type, int, long, float, bool)):
+            if new:
+                if isinstance(java_val,bool):
+                    return bool(java_val)            
+                if isinstance(java_val,string_type):
+                    return str(java_val)
+                if isinstance(java_val,int):
+                    if(java_method == 'booleanValue'):
+                        return bool(java_val)
+                    return int(java_val)
+                if isinstance(java_val,float):
+                    return float(java_val.floatValue())
             return java_val
         elif isinstance(java_val, (string_type, int, float, bool)):
-            return java_val
+            if new:
+                if isinstance(java_val,string_type):
+                    return str(java_val)
+                if isinstance(java_val,bool):
+                    return bool(java_val) 
+                if isinstance(java_val,int):
+                    if(java_method == 'booleanValue'):
+                        return bool(java_val)
+                    return int(java_val)
+                if isinstance(java_val,float):
+                    return float(java_val.floatValue())
+            return java_val  
+        
         return getattr(java_val, java_method)()
     return to_py
 
-def _java_to_py_bigdecimal():
-    def to_py(rs, col):
+def _java_to_py_bigdecimal(new):
+    def to_py(rs, col, new):
         java_val = rs.getObject(col)
         if java_val is None:
             return
         if hasattr(java_val, 'scale'):
             scale = java_val.scale()
             if scale == 0:
-                return java_val.longValue()
+                if new:
+                    return float(java_val.longValue())
+                else:
+                    return java_val.longValue()
             else:
-                return java_val.doubleValue()
+                if new:
+                    return float(java_val.doubleValue())
+                else:
+                    return java_val.doubleValue()                
         else:
             return float(java_val)
     return to_py
 
-_to_double = _java_to_py('doubleValue')
+_to_double_new = _java_to_py('doubleValue', True)
 
-_to_int = _java_to_py('intValue')
+_to_int_new = _java_to_py('intValue', True)
 
-_to_boolean = _java_to_py('booleanValue')
+_to_boolean_new = _java_to_py('booleanValue', True)
 
-_to_decimal = _java_to_py_bigdecimal()
+_to_decimal_new = _java_to_py_bigdecimal(True)
+
+_to_double = _java_to_py('doubleValue', False)
+
+_to_int = _java_to_py('intValue', False)
+
+_to_boolean = _java_to_py('booleanValue', False)
+
+_to_decimal = _java_to_py_bigdecimal(False)
 
 def _init_types(types_map):
     global _jdbc_name_to_const
@@ -698,12 +749,35 @@ def _init_converters(types_map):
     _converters = {}
     for i in _DEFAULT_CONVERTERS:
         const_val = types_map[i]
-        _converters[const_val] = _DEFAULT_CONVERTERS[i]
+        _converters[(0,const_val)] = _DEFAULT_CONVERTERS[i]
+    for i in _DEFAULT_CONVERTERS_OLD:
+        const_val = types_map[i]
+        _converters[(1,const_val)] = _DEFAULT_CONVERTERS[i]
 
 # Mapping from java.sql.Types field to converter method
 _converters = None
 
 _DEFAULT_CONVERTERS = {
+    # see
+    # http://download.oracle.com/javase/8/docs/api/java/sql/Types.html
+    # for possible keys
+    'TIMESTAMP': _to_datetime,
+    'TIME': _to_time,
+    'DATE': _to_date,
+    'BINARY': _to_binary,
+    'DECIMAL': _to_decimal_new,
+    'NUMERIC': _to_decimal_new,
+    'DOUBLE': _to_double_new,
+    'FLOAT': _to_double_new,
+    'TINYINT': _to_int_new,
+    'INTEGER': _to_int_new,
+    'SMALLINT': _to_int_new,
+    'BOOLEAN': _to_boolean_new,
+    'BIT': _to_boolean_new,
+    'REAL': _to_double_new
+}
+
+_DEFAULT_CONVERTERS_OLD = {
     # see
     # http://download.oracle.com/javase/8/docs/api/java/sql/Types.html
     # for possible keys
@@ -719,5 +793,6 @@ _DEFAULT_CONVERTERS = {
     'INTEGER': _to_int,
     'SMALLINT': _to_int,
     'BOOLEAN': _to_boolean,
-    'BIT': _to_boolean
+    'BIT': _to_boolean,
+    'REAL': _to_double
 }
