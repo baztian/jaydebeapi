@@ -16,7 +16,7 @@ Setup test requirements
     cd <JAYDEBEAPI_WORKDIR>
     python3 -m venv env
     . env/bin/activate
-    pip install -rdev-requirements.txt
+    pip install -r dev-requirements.txt
 
     # Install Jython 2.7
     ci/mvnget.sh org.python:jython-installer:2.7.2
@@ -28,7 +28,7 @@ Setup test requirements
 
     # execute stuff on specific env (examples)
     tox -e py3-driver-mock -- python
-    tox -e py3-driver-mock -- python test/testsuite.py test_mock.MockTest.test_sql_exception_on_commit
+    tox -e py39-driver-sqliteXerial -- python test/testsuite.py test_integration.SqliteXerialTest.test_execute_and_fetchone
 
     # activate and work on specific env
     . .tox/py35-driver-mock/bin/activate
