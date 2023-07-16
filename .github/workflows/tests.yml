@@ -15,13 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.8]
+        python-version: [3.9, 3.11]
         plattform: ["Python"]
-        include:
-          - python-version: 3.8
-            plattform: "Jython"
-            jython: org.python:jython-installer:2.7.2
-            toxenv: "jython-driver-{hsqldb,mock}"
 
     steps:
     - uses: actions/checkout@v2
@@ -43,27 +38,11 @@ jobs:
         key: ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/*requirements.txt', 'tox.ini', 'setup.py') }}
         restore-keys: |
           ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-
-    - name: Jython installation cache
-      uses: actions/cache@v2
-      with:
-        path: ~/jython
-        key: ${{ matrix.jython }}-jython
-      if: matrix.jython
 
-    - name: Consider Jython
-      run: |
-        ci/before_install_jython.sh
-      if: matrix.jython
-      env:
-        JYTHON: ${{ matrix.jython }}
     - name: Install dependencies
       # for some reason installing from https://github.com/baztian/tox-gh-actions/archive/allow-env-override.tar.gz doesn't work
       run: pip install coveralls tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
-    - name: Test with tox for Jython only
-      if: matrix.jython
-      run: tox -e "${{ matrix.toxenv }}"
     - name: Test with tox for non Jython only
-      if: ${{ ! matrix.jython }}
       run: tox
     - name: Coveralls
       uses: baztian/coveralls-python-action@new-merged-changes
