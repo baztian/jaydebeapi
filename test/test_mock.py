@@ -17,7 +17,7 @@
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-import jaydebeapi
+import jaydebeapiarrow
 
 try:
     import unittest2 as unittest
