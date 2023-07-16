@@ -12,6 +12,7 @@ env/
 mem.*
 *.log
 JayDeBeApi.egg-info
+JayDeBeApiArrow.egg-info
 target/
 .classpath
 .project
@@ -22,3 +23,5 @@ target/
 .settings/
 .jython_cache/
 .vscode/
+jars/
+*.DS_Store
