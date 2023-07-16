@@ -20,34 +20,31 @@ import sys
 
 from setuptools import setup
 
-install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implementation != "Jython"',
-                     'JPype1<=0.7.1 ; python_version <= "2.7" and platform_python_implementation != "Jython"',
-                    ]
+install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implementation != "Jython"',]
 
 setup(
     #basic package data
-    name = 'JayDeBeApi',
-    version = '1.2.3',
-    author = 'Bastian Bowe',
-    author_email = 'bastian.dev@gmail.com',
+    name = 'JayDeBeApiArrow',
+    version = '0.0.1',
+    author = 'HenryNebula',
+    author_email = 'henrynebula0710@gmail.com',
     license = 'GNU LGPL',
-    url='https://github.com/baztian/jaydebeapi',
-    description=('Use JDBC database drivers from Python 2/3 or Jython with a DB-API.'),
+    url='https://github.com/HenryNebula/jaydebeapiArrow.git',
+    description=('Use JDBC database drivers from Python 3 with a DB-API and Apache Arrow for acceleration.'),
     long_description=open('README.rst').read(),
-    keywords = ('db api java jdbc bridge connect sql jpype jython'),
+    keywords = ('db api java jdbc bridge connect sql jpype arrow'),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Programming Language :: Java',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Database',
         'Topic :: Software Development :: Libraries :: Java Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
 
-    packages=['jaydebeapi'],
+    packages=['jaydebeapiarrow'],
     install_requires=install_requires,
     )
