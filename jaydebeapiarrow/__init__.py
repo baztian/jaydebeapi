@@ -16,8 +16,12 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
+#
+# Modified by HenryNebula (2023):
+# 1. Remove py2 & Jython support
+# 2. Enforce typing for Decimal and temporal types
 
-__version_info__ = (1, 2, 3)
+__version_info__ = (0, 1, 0)
 __version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime
@@ -31,39 +35,16 @@ import warnings
 import pyarrow
 import pyarrow.jvm
 
-PY2 = sys.version_info[0] == 2
 
-if PY2:
-    # Ideas stolen from the six python 2 and 3 compatibility layer
-    def exec_(_code_, _globs_=None, _locs_=None):
-        """Execute code in a namespace."""
-        if _globs_ is None:
-            frame = sys._getframe(1)
-            _globs_ = frame.f_globals
-            if _locs_ is None:
-                _locs_ = frame.f_locals
-            del frame
-        elif _locs_ is None:
-            _locs_ = _globs_
-        exec("""exec _code_ in _globs_, _locs_""")
+def reraise(tp, value, tb=None):
+    if value is None:
+        value = tp()
+    else:
+        value = tp(value)
+    if tb:
+        raise value.with_traceback(tb)
+    raise value
 
-    exec_("""def reraise(tp, value, tb=None):
-    raise tp, value, tb
-""")
-else:
-    def reraise(tp, value, tb=None):
-        if value is None:
-            value = tp()
-        else:
-            value = tp(value)
-        if tb:
-            raise value.with_traceback(tb)
-        raise value
-
-if PY2:
-    string_type = basestring
-else:
-    string_type = str
 
 # Mapping from java.sql.Types attribute name to attribute value
 _jdbc_name_to_const = None
@@ -78,77 +59,6 @@ _java_array_byte = None
 _handle_sql_exception = None
 
 old_jpype = False
-
-def _handle_sql_exception_jython():
-    from java.sql import SQLException
-    exc_info = sys.exc_info()
-    if isinstance(exc_info[1], SQLException):
-        exc_type = DatabaseError
-    else:
-        exc_type = InterfaceError
-    reraise(exc_type, exc_info[1], exc_info[2])
-
-def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
-    if _jdbc_name_to_const is None:
-        from java.sql import Types
-        types = Types
-        types_map = {}
-        const_re = re.compile('[A-Z][A-Z_]*$')
-        for i in dir(types):
-            if const_re.match(i):
-                types_map[i] = getattr(types, i)
-        _init_types(types_map)
-    global _java_array_byte
-    if _java_array_byte is None:
-        import jarray
-        def _java_array_byte(data):
-            return jarray.array(data, 'b')
-    # register driver for DriverManager
-    jpackage = jclassname[:jclassname.rfind('.')]
-    dclassname = jclassname[jclassname.rfind('.') + 1:]
-    # print jpackage
-    # print dclassname
-    # print jpackage
-    from java.lang import Class
-    from java.lang import ClassNotFoundException
-    try:
-        Class.forName(jclassname).newInstance()
-    except ClassNotFoundException:
-        if not jars:
-            raise
-        _jython_set_classpath(jars)
-        Class.forName(jclassname).newInstance()
-    from java.sql import DriverManager
-    if isinstance(driver_args, dict):
-        from java.util import Properties
-        info = Properties()
-        for k, v in driver_args.items():
-            info.setProperty(k, v)
-        dargs = [ info ]
-    else:
-        dargs = driver_args
-    return DriverManager.getConnection(url, *dargs)
-
-def _jython_set_classpath(jars):
-    '''
-    import a jar at runtime (needed for JDBC [Class.forName])
-
-    adapted by Bastian Bowe from
-    http://stackoverflow.com/questions/3015059/jython-classpath-sys-path-and-jdbc-drivers
-    '''
-    from java.net import URL, URLClassLoader
-    from java.lang import ClassLoader
-    from java.io import File
-    m = URLClassLoader.getDeclaredMethod("addURL", [URL])
-    m.accessible = 1
-    urls = [File(i).toURL() for i in jars]
-    m.invoke(ClassLoader.getSystemClassLoader(), urls)
-
-def _prepare_jython():
-    global _jdbc_connect
-    _jdbc_connect = _jdbc_connect_jython
-    global _handle_sql_exception
-    _handle_sql_exception = _handle_sql_exception_jython
 
 def _handle_sql_exception_jpype():
     import jpype
@@ -496,17 +406,17 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     libs: Dll/so filenames or sequence of dlls/sos used as shared
           library by the JDBC driver
     """
-    if isinstance(driver_args, string_type):
+    if isinstance(driver_args, str):
         driver_args = [ driver_args ]
     if not driver_args:
        driver_args = []
     if jars:
-        if isinstance(jars, string_type):
+        if isinstance(jars, str):
             jars = [ jars ]
     else:
         jars = []
     if libs:
-        if isinstance(libs, string_type):
+        if isinstance(libs, str):
             libs = [ libs ]
     else:
         libs = []
@@ -745,9 +655,7 @@ def _java_to_py(java_method):
         java_val = rs.getObject(col)
         if java_val is None:
             return
-        if PY2 and isinstance(java_val, (string_type, int, long, float, bool)):
-            return java_val
-        elif isinstance(java_val, (string_type, int, float, bool)):
+        if isinstance(java_val, (str, int, float, bool)):
             return java_val
         return getattr(java_val, java_method)()
     return to_py
