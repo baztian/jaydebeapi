@@ -22,7 +22,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13</version>
+      <version>4.13.1</version>
       <scope>test</scope>
     </dependency>
  </dependencies>
@@ -30,38 +30,27 @@
  <build>
    <plugins>
      <plugin>
-       <groupId>org.apache.maven.plugins</groupId>
-       <artifactId>maven-dependency-plugin</artifactId>
-       <version>3.1.2</version>
-       <executions>
-         <execution>
-           <id>copy-dependencies</id>
-           <phase>prepare-package</phase>
-           <goals>
-             <goal>copy-dependencies</goal>
-           </goals>
-           <configuration>
-             <outputDirectory>${project.build.directory}/lib</outputDirectory>
-             <overWriteReleases>false</overWriteReleases>
-             <overWriteSnapshots>false</overWriteSnapshots>
-             <overWriteIfNewer>true</overWriteIfNewer>
-           </configuration>
-         </execution>
-       </executions>
-     </plugin>
-     <plugin>
-       <groupId>org.apache.maven.plugins</groupId>
-       <artifactId>maven-jar-plugin</artifactId>
-       <version>3.2.0</version>
-       <configuration>
-         <archive>
-           <manifest>
-             <addClasspath>true</addClasspath>
-             <classpathPrefix>lib/</classpathPrefix>
-           </manifest>
-         </archive>
-       </configuration>
-     </plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.jaydebapi.mockdriver.Main</mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
    </plugins>
  </build>
 
