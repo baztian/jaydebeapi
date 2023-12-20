@@ -19,20 +19,20 @@ jobs:
         plattform: ["Python"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Maven cache
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: .tox/shared/.m2
         key: ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ matrix.plattform }}-${{ matrix.python-version }}-maven-
     - name: Pip cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/*requirements.txt', 'tox.ini', 'setup.py') }}
@@ -40,22 +40,23 @@ jobs:
           ${{ matrix.plattform }}-${{ matrix.python-version }}-pip-
 
     - name: Install dependencies
-      # for some reason installing from https://github.com/baztian/tox-gh-actions/archive/allow-env-override.tar.gz doesn't work
-      run: pip install coveralls tox git+https://github.com/baztian/tox-gh-actions.git@allow-env-override
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install coveralls tox tox-gh-actions
     - name: Test with tox for non Jython only
       run: tox
-    - name: Coveralls
-      uses: baztian/coveralls-python-action@new-merged-changes
-      with:
-        parallel: true
-        flag-name: ${{ matrix.plattform }}-${{ matrix.python-version }}
-        coverage-version: 4.5.4
-
-  coveralls_finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: baztian/coveralls-python-action@new-merged-changes
-      with:
-        parallel-finished: true
+#    - name: Coveralls
+#      uses: baztian/coveralls-python-action@new-merged-changes
+#      with:
+#        parallel: true
+#        flag-name: ${{ matrix.plattform }}-${{ matrix.python-version }}
+#        coverage-version: 4.5.4
+#
+#  coveralls_finish:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Coveralls Finished
+#      uses: baztian/coveralls-python-action@new-merged-changes
+#      with:
+#        parallel-finished: true
