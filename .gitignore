@@ -26,4 +26,4 @@ target/
 jars/
 *.DS_Store
 */jars
-*/lib
+*/lib/*.jar
