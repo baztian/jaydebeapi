@@ -87,6 +87,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         # print(_get_classpath())
         class_path.extend(_get_classpath())
         class_path.extend(_get_arrow_jar_paths())
+        class_path = list(set(class_path))
         # print(class_path)
         if class_path:
             args.append('-Djava.class.path=%s' %
@@ -120,14 +121,14 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         types = jpype.java.sql.Types
         types_map = {}
         if old_jpype:
-          for i in types.__javaclass__.getClassFields():
-            const = i.getStaticAttribute()
-            types_map[i.getName()] = const
+            for i in types.__javaclass__.getClassFields():
+                const = i.getStaticAttribute()
+                types_map[i.getName()] = const
         else:
-          for i in types.class_.getFields():
-            if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
-              const = i.get(None)
-              types_map[i.getName()] = const 
+            for i in types.class_.getFields():
+                if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
+                    const = i.get(None)
+                    types_map[i.getName()] = const
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
@@ -180,12 +181,12 @@ else:
 
 
 def _get_arrow_jar_paths():
-    search_path = os.path.join(os.path.dirname(__file__), "./jars/arrow*")
+    search_path = os.path.join(os.path.dirname(__file__), "./lib/arrow-jdbc-extension*")
     arrow_jars = list(_jar_glob(search_path))
     assert len(arrow_jars) > 0, f"Can not find arrow-jdbc JAR file at {search_path}"
     return arrow_jars
 
-def _jdbc_rs_to_arrow_iterator(rs, size=1024):
+def _jdbc_rs_to_arrow_iterator(rs, batch_size=1024):
     import jpype.imports
     from jpype.types import JInt
     from java.sql import Types, JDBCType
@@ -195,44 +196,30 @@ def _jdbc_rs_to_arrow_iterator(rs, size=1024):
     from org.apache.arrow.memory import RootAllocator
 
     ra = RootAllocator(sys.maxsize)
-    size = max(min(size, 100_000), 1)
-    calendar = JdbcToArrowUtils.getUtcCalendar()
+    batch_size = max(min(batch_size, 100_000), 1)
 
-    meta_data = rs.getMetaData()
-    explicit_mapping = HashMap()
-    for col in range(1, meta_data.getColumnCount() + 1):
-        column_type = meta_data.getColumnType(col)
-        column_type_name = meta_data.getColumnTypeName(col)
-        column_name= meta_data.getColumnName(col)
-        column_nullable = meta_data.isNullable(col)
+    # calendar = JdbcToArrowUtils.getUtcCalendar()
+    calendar = None
 
-        # print(column_type, column_type_name, column_name, column_nullable)
+    from org.jaydebeapiarrow.extension import ExplicitTypeMapper
+    explicit_type_mapper = ExplicitTypeMapper()
+    explicit_mapping = explicit_type_mapper.createExplicitTypeMapping(rs)
 
-        if column_type == Types.DECIMAL or column_type == Types.NUMERIC:
-            precision = meta_data.getPrecision(col)
-            scale = meta_data.getScale(col)
-            print(f"Column {column_name}: Decimal({precision, scale})")
-            # if precision == 0 and scale == 0:
-            # print(meta_data.getColumnName(col), meta_data.getColumnTypeName(col), JDBCType.valueOf(column_type).getName(), precision, scale)
-            explicit_mapping.put(JInt(col), JdbcFieldInfo(Types.DECIMAL, min(max(31, precision), 31), max(scale, 15)))
-        if column_type == Types.INTEGER and 'DECIMAL' in column_type_name:
-            explicit_mapping.put(JInt(col), JdbcFieldInfo(Types.DECIMAL, min(max(31, precision), 31), 0))
-            print("Wierd decimal column loaded as integer: ", column_name)
-        else:
-            pass
+    from org.jaydebeapiarrow.extension import OverriddenConsumer
+    overriden_consumer = OverriddenConsumer(calendar)
 
     arrow_jdbc_config = (
         JdbcToArrowConfigBuilder()
         .setAllocator(ra)
-        # .setCalendar(calendar)
-        .setTargetBatchSize(size)
+        .setCalendar(calendar)
+        .setTargetBatchSize(batch_size)
         .setBigDecimalRoundingMode(RoundingMode.UNNECESSARY)
         .setExplicitTypesByColumnIndex(explicit_mapping)
         .setIncludeMetadata(True)
+        .setJdbcToArrowTypeConverter(overriden_consumer.getJdbcToArrowTypeConverter)
+        .setJdbcConsumerGetter(overriden_consumer.getConsumer)
         .build()
     )
-
-    # print("Try using pyarrow backend: batch size =", size)
 
     iterator = JdbcToArrow.sqlToArrowVectorIterator(rs, arrow_jdbc_config)
 
@@ -476,6 +463,7 @@ class Cursor(object):
     _meta = None
     _prep = None
     _rs = None
+    _rs_initial_fetch = True
     _description = None
 
     def __init__(self, connection, converters):
@@ -521,6 +509,7 @@ class Cursor(object):
         """
         if self._rs:
             self._rs.close()
+            self._rs_initial_fetch = True
         self._rs = None
         if self._prep:
             self._prep.close()
@@ -547,6 +536,7 @@ class Cursor(object):
             _handle_sql_exception()
         if is_rs:
             self._rs = self._prep.getResultSet()
+            self._rs_initial_fetch = True
             self._meta = self._rs.getMetaData()
             self.rowcount = -1
         else:
@@ -567,18 +557,29 @@ class Cursor(object):
     def fetchone(self):
         if not self._rs:
             raise Error()
-        if not self._rs.isBeforeFirst():
+        # if not self._rs.isBeforeFirst():
+        #     return None
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
             return None
-        
-        it = _jdbc_rs_to_arrow_iterator(self._rs, size=1)
+
+        it = _jdbc_rs_to_arrow_iterator(self._rs, batch_size=1)
         row = _arrow_iterator_to_rows(it, nrows=1)
         return tuple(*row) if len(row) == 1 else None
 
     def fetchmany(self, size=None):
         if not self._rs:
             raise Error()
-        if not self._rs.isBeforeFirst():
+        # if not self._rs.isBeforeFirst():
+        #     return []
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
             return []
+
         if size is None:
             size = self.arraysize
 
@@ -592,7 +593,12 @@ class Cursor(object):
     def fetchall(self):
         if not self._rs:
             raise Error()
-        if not self._rs.isBeforeFirst():
+        # if not self._rs.isBeforeFirst():
+        #     return []
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
             return []
         
         it = _jdbc_rs_to_arrow_iterator(self._rs)
