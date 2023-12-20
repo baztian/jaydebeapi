@@ -263,10 +263,11 @@ paramstyle = 'qmark'
 
 class DBAPITypeObject(object):
     _mappings = {}
-    def __init__(self, *values):
+    def __init__(self, group_name, *values):
         """Construct new DB-API 2.0 type object.
         values: Attribute names of java.sql.Types constants"""
         self.values = values
+        self.group_name = group_name
         for type_name in values:
             if type_name in DBAPITypeObject._mappings:
                 raise ValueError("Non unique mapping for type '%s'" % type_name)
@@ -296,26 +297,26 @@ class DBAPITypeObject(object):
             return None
 
 
-STRING = DBAPITypeObject('CHAR', 'NCHAR', 'NVARCHAR', 'VARCHAR', 'OTHER')
+STRING = DBAPITypeObject('STRING', 'CHAR', 'NCHAR', 'NVARCHAR', 'VARCHAR') # TODO: 'OTHER' not supported
 
-TEXT = DBAPITypeObject('CLOB', 'LONGVARCHAR', 'LONGNVARCHAR', 'NCLOB', 'SQLXML')
+TEXT = DBAPITypeObject('TEXT', 'CLOB', 'LONGVARCHAR', 'LONGNVARCHAR') # TODO: 'NCLOB', 'SQLXML' not supported
 
-BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
+BINARY = DBAPITypeObject('BINARY', 'BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'BIT', 'INTEGER', 'SMALLINT',
+NUMBER = DBAPITypeObject('NUMBER','BOOLEAN', 'BIGINT', 'BIT', 'INTEGER', 'SMALLINT',
                          'TINYINT')
 
-FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
+FLOAT = DBAPITypeObject('FLOAT', 'FLOAT', 'REAL', 'DOUBLE')
 
-DECIMAL = DBAPITypeObject('DECIMAL', 'NUMERIC')
+DECIMAL = DBAPITypeObject('DECIMAL', 'DECIMAL', 'NUMERIC')
 
-DATE = DBAPITypeObject('DATE')
+DATE = DBAPITypeObject('DATE', 'DATE')
 
-TIME = DBAPITypeObject('TIME')
+TIME = DBAPITypeObject('TIME', 'TIME')
 
-DATETIME = DBAPITypeObject('TIMESTAMP')
+DATETIME = DBAPITypeObject('TIMESTAMP', 'TIMESTAMP')
 
-ROWID = DBAPITypeObject('ROWID')
+# ROWID = DBAPITypeObject('ROWID', 'ROWID') # TODO: 'ROWID' not supported
 
 # DB-API 2.0 Module Interface Exceptions
 class Error(Exception):
@@ -349,6 +350,7 @@ class NotSupportedError(DatabaseError):
     pass
 
 # DB-API 2.0 Type Objects and Constructors
+import jpype.dbapi2
 
 def _java_sql_blob(data):
     return _java_array_byte(data)
@@ -360,10 +362,20 @@ def _str_func(func):
         return str(func(*parms))
     return to_str
 
+def _ts_converter(*parms):
+    if len(parms) >= 7:
+        nano = parms[6] * 1000
+    else:
+        nano = 0
+    return jpype.dbapi2.Timestamp(*parms[:6], nano=nano)
+
+TypedDate = lambda *parms: jpype.dbapi2.Date(*parms)
 Date = _str_func(datetime.date)
 
+TypedTime = lambda *parms: jpype.dbapi2.Time(*parms)
 Time = _str_func(datetime.time)
 
+TypedTimestamp = lambda *parms: _ts_converter(*parms)
 Timestamp = _str_func(datetime.datetime)
 
 def DateFromTicks(ticks):
