@@ -1,3 +1,4 @@
-recursive-include src/test *.py *.sql
+recursive-include test/ *.py *.sql
+recursive-include jaydebeapiarrow/ arrow-jdbc-extension*.jar
 prune *~
 include README*.rst COPYING*

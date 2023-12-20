@@ -16,25 +16,28 @@
 # <http://www.gnu.org/licenses/>.
 # 
 
-import sys
-
 from setuptools import setup
 
-install_requires = [ 'JPype1 ; python_version > "2.7" and platform_python_implementation != "Jython"',]
+install_requires = [
+    'JPype1>=1.0.0',
+    'pyarrow>=12.0.0',
+]
+
+package_name = 'JayDeBeApiArrow'
 
 setup(
-    #basic package data
-    name = 'JayDeBeApiArrow',
-    version = '0.0.1',
-    author = 'HenryNebula',
-    author_email = 'henrynebula0710@gmail.com',
-    license = 'GNU LGPL',
-    url='https://github.com/HenryNebula/jaydebeapiArrow.git',
-    description=('Use JDBC database drivers from Python 3 with a DB-API and Apache Arrow for acceleration.'),
+    # basic package data
+    name=package_name,
+    version='0.0.1-a1',
+    author='HenryNebula',
+    author_email='henrynebula0710@gmail.com',
+    license='GNU LGPL',
+    url='https://github.com/HenryNebula/jaydebeapiarrow.git',
+    description='Use JDBC database drivers from Python 3 with a DB-API, accelerated with Apache Arrow.',
     long_description=open('README.rst').read(),
-    keywords = ('db api java jdbc bridge connect sql jpype arrow'),
+    keywords = ('db api java jdbc bridge connect sql jpype apache-arrow'),
     classifiers = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Programming Language :: Java',
@@ -44,7 +47,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Java Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-
-    packages=['jaydebeapiarrow'],
+    packages=[ package_name.lower(), package_name.lower() + ".lib"],
     install_requires=install_requires,
-    )
+    include_package_data=True,
+    python_requires='>=3.8',
+)
