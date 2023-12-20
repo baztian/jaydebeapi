@@ -16,8 +16,12 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with JayDeBeApi.  If not, see
 # <http://www.gnu.org/licenses/>.
+#
+# Modified by HenryNebula (2023):
+# 1. Remove py2 & Jython support
+# 2. Enforce typing for Decimal and temporal types
 
-__version_info__ = (1, 2, 3)
+__version_info__ = (0, 1, 0)
 __version__ = ".".join(str(i) for i in __version_info__)
 
 import datetime
@@ -28,39 +32,19 @@ import re
 import sys
 import warnings
 
-PY2 = sys.version_info[0] == 2
+import pyarrow
+import pyarrow.jvm
 
-if PY2:
-    # Ideas stolen from the six python 2 and 3 compatibility layer
-    def exec_(_code_, _globs_=None, _locs_=None):
-        """Execute code in a namespace."""
-        if _globs_ is None:
-            frame = sys._getframe(1)
-            _globs_ = frame.f_globals
-            if _locs_ is None:
-                _locs_ = frame.f_locals
-            del frame
-        elif _locs_ is None:
-            _locs_ = _globs_
-        exec("""exec _code_ in _globs_, _locs_""")
 
-    exec_("""def reraise(tp, value, tb=None):
-    raise tp, value, tb
-""")
-else:
-    def reraise(tp, value, tb=None):
-        if value is None:
-            value = tp()
-        else:
-            value = tp(value)
-        if tb:
-            raise value.with_traceback(tb)
-        raise value
+def reraise(tp, value, tb=None):
+    if value is None:
+        value = tp()
+    else:
+        value = tp(value)
+    if tb:
+        raise value.with_traceback(tb)
+    raise value
 
-if PY2:
-    string_type = basestring
-else:
-    string_type = str
 
 # Mapping from java.sql.Types attribute name to attribute value
 _jdbc_name_to_const = None
@@ -75,77 +59,6 @@ _java_array_byte = None
 _handle_sql_exception = None
 
 old_jpype = False
-
-def _handle_sql_exception_jython():
-    from java.sql import SQLException
-    exc_info = sys.exc_info()
-    if isinstance(exc_info[1], SQLException):
-        exc_type = DatabaseError
-    else:
-        exc_type = InterfaceError
-    reraise(exc_type, exc_info[1], exc_info[2])
-
-def _jdbc_connect_jython(jclassname, url, driver_args, jars, libs):
-    if _jdbc_name_to_const is None:
-        from java.sql import Types
-        types = Types
-        types_map = {}
-        const_re = re.compile('[A-Z][A-Z_]*$')
-        for i in dir(types):
-            if const_re.match(i):
-                types_map[i] = getattr(types, i)
-        _init_types(types_map)
-    global _java_array_byte
-    if _java_array_byte is None:
-        import jarray
-        def _java_array_byte(data):
-            return jarray.array(data, 'b')
-    # register driver for DriverManager
-    jpackage = jclassname[:jclassname.rfind('.')]
-    dclassname = jclassname[jclassname.rfind('.') + 1:]
-    # print jpackage
-    # print dclassname
-    # print jpackage
-    from java.lang import Class
-    from java.lang import ClassNotFoundException
-    try:
-        Class.forName(jclassname).newInstance()
-    except ClassNotFoundException:
-        if not jars:
-            raise
-        _jython_set_classpath(jars)
-        Class.forName(jclassname).newInstance()
-    from java.sql import DriverManager
-    if isinstance(driver_args, dict):
-        from java.util import Properties
-        info = Properties()
-        for k, v in driver_args.items():
-            info.setProperty(k, v)
-        dargs = [ info ]
-    else:
-        dargs = driver_args
-    return DriverManager.getConnection(url, *dargs)
-
-def _jython_set_classpath(jars):
-    '''
-    import a jar at runtime (needed for JDBC [Class.forName])
-
-    adapted by Bastian Bowe from
-    http://stackoverflow.com/questions/3015059/jython-classpath-sys-path-and-jdbc-drivers
-    '''
-    from java.net import URL, URLClassLoader
-    from java.lang import ClassLoader
-    from java.io import File
-    m = URLClassLoader.getDeclaredMethod("addURL", [URL])
-    m.accessible = 1
-    urls = [File(i).toURL() for i in jars]
-    m.invoke(ClassLoader.getSystemClassLoader(), urls)
-
-def _prepare_jython():
-    global _jdbc_connect
-    _jdbc_connect = _jdbc_connect_jython
-    global _handle_sql_exception
-    _handle_sql_exception = _handle_sql_exception_jython
 
 def _handle_sql_exception_jpype():
     import jpype
@@ -171,7 +84,11 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         class_path = []
         if jars:
             class_path.extend(jars)
+        # print(_get_classpath())
         class_path.extend(_get_classpath())
+        class_path.extend(_get_arrow_jar_paths())
+        class_path = list(set(class_path))
+        # print(class_path)
         if class_path:
             args.append('-Djava.class.path=%s' %
                         os.path.pathsep.join(class_path))
@@ -204,14 +121,14 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
         types = jpype.java.sql.Types
         types_map = {}
         if old_jpype:
-          for i in types.__javaclass__.getClassFields():
-            const = i.getStaticAttribute()
-            types_map[i.getName()] = const
+            for i in types.__javaclass__.getClassFields():
+                const = i.getStaticAttribute()
+                types_map[i.getName()] = const
         else:
-          for i in types.class_.getFields():
-            if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
-              const = i.get(None)
-              types_map[i.getName()] = const 
+            for i in types.class_.getFields():
+                if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
+                    const = i.get(None)
+                    types_map[i.getName()] = const
         _init_types(types_map)
     global _java_array_byte
     if _java_array_byte is None:
@@ -244,7 +161,10 @@ def _get_classpath():
 
 def _jar_glob(item):
     if item.endswith('*'):
-        return glob.glob('%s.[jJ][aA][rR]' % item)
+        jars = []
+        for p in ['', '/**/']:
+            jars.extend(glob.glob('%s' % str(item).rstrip("*") + p + "*.[jJ][aA][rR]", recursive=True))
+        return jars
     else:
         return [item]
 
@@ -259,16 +179,95 @@ if sys.platform.lower().startswith('java'):
 else:
     _prepare_jpype()
 
+
+def _get_arrow_jar_paths():
+    search_path = os.path.join(os.path.dirname(__file__), "./lib/arrow-jdbc-extension*")
+    arrow_jars = list(_jar_glob(search_path))
+    assert len(arrow_jars) > 0, f"Can not find arrow-jdbc JAR file at {search_path}"
+    return arrow_jars
+
+def _jdbc_rs_to_arrow_iterator(rs, batch_size=1024):
+    import jpype.imports
+    from jpype.types import JInt
+    from java.sql import Types, JDBCType
+    from java.util import HashMap
+    from java.math import RoundingMode
+    from org.apache.arrow.adapter.jdbc import JdbcToArrowUtils, JdbcToArrowConfigBuilder, JdbcToArrow, JdbcFieldInfo
+    from org.apache.arrow.memory import RootAllocator
+
+    ra = RootAllocator(sys.maxsize)
+    batch_size = max(min(batch_size, 100_000), 1)
+
+    # calendar = JdbcToArrowUtils.getUtcCalendar()
+    calendar = None
+
+    from org.jaydebeapiarrow.extension import ExplicitTypeMapper
+    explicit_type_mapper = ExplicitTypeMapper()
+    explicit_mapping = explicit_type_mapper.createExplicitTypeMapping(rs)
+
+    from org.jaydebeapiarrow.extension import OverriddenConsumer
+    overriden_consumer = OverriddenConsumer(calendar)
+
+    arrow_jdbc_config = (
+        JdbcToArrowConfigBuilder()
+        .setAllocator(ra)
+        .setCalendar(calendar)
+        .setTargetBatchSize(batch_size)
+        .setBigDecimalRoundingMode(RoundingMode.UNNECESSARY)
+        .setExplicitTypesByColumnIndex(explicit_mapping)
+        .setIncludeMetadata(True)
+        .setJdbcToArrowTypeConverter(overriden_consumer.getJdbcToArrowTypeConverter)
+        .setJdbcConsumerGetter(overriden_consumer.getConsumer)
+        .build()
+    )
+
+    iterator = JdbcToArrow.sqlToArrowVectorIterator(rs, arrow_jdbc_config)
+
+    return iterator
+
+
+def _arrow_iterator_to_rows(it, nrows=-1):
+    root = None
+    rows = []
+
+    nrows_remaining = nrows
+
+    try:
+        for root in it:
+            batch = pyarrow.jvm.record_batch(root).to_pylist()
+            _rows = [tuple(r.values()) for r in batch]
+            if nrows_remaining > 0:
+                _rows = _rows[:min(len(_rows), nrows_remaining)]
+                nrows_remaining -= len(_rows)
+            else:
+                if nrows > 0:
+                    break
+            rows.extend(_rows)
+            # print(f"Finish pulling {len(_rows)} rows")
+    except Exception as e:
+        import sys, traceback
+        traceback.print_exc()
+        print(f"Error converting iterator to rows: {e}")
+        raise e
+    finally:
+        if root is not None:
+            root.clear()
+    
+    if nrows > 0:
+        assert nrows >= len(rows), f"Mismatched number rows: {len(rows)} (expected {nrows})"
+    return rows
+
 apilevel = '2.0'
 threadsafety = 1
 paramstyle = 'qmark'
 
 class DBAPITypeObject(object):
     _mappings = {}
-    def __init__(self, *values):
+    def __init__(self, group_name, *values):
         """Construct new DB-API 2.0 type object.
         values: Attribute names of java.sql.Types constants"""
         self.values = values
+        self.group_name = group_name
         for type_name in values:
             if type_name in DBAPITypeObject._mappings:
                 raise ValueError("Non unique mapping for type '%s'" % type_name)
@@ -298,26 +297,26 @@ class DBAPITypeObject(object):
             return None
 
 
-STRING = DBAPITypeObject('CHAR', 'NCHAR', 'NVARCHAR', 'VARCHAR', 'OTHER')
+STRING = DBAPITypeObject('STRING', 'CHAR', 'NCHAR', 'NVARCHAR', 'VARCHAR') # TODO: 'OTHER' not supported
 
-TEXT = DBAPITypeObject('CLOB', 'LONGVARCHAR', 'LONGNVARCHAR', 'NCLOB', 'SQLXML')
+TEXT = DBAPITypeObject('TEXT', 'CLOB', 'LONGVARCHAR', 'LONGNVARCHAR') # TODO: 'NCLOB', 'SQLXML' not supported
 
-BINARY = DBAPITypeObject('BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
+BINARY = DBAPITypeObject('BINARY', 'BINARY', 'BLOB', 'LONGVARBINARY', 'VARBINARY')
 
-NUMBER = DBAPITypeObject('BOOLEAN', 'BIGINT', 'BIT', 'INTEGER', 'SMALLINT',
+NUMBER = DBAPITypeObject('NUMBER','BOOLEAN', 'BIGINT', 'BIT', 'INTEGER', 'SMALLINT',
                          'TINYINT')
 
-FLOAT = DBAPITypeObject('FLOAT', 'REAL', 'DOUBLE')
+FLOAT = DBAPITypeObject('FLOAT', 'FLOAT', 'REAL', 'DOUBLE')
 
-DECIMAL = DBAPITypeObject('DECIMAL', 'NUMERIC')
+DECIMAL = DBAPITypeObject('DECIMAL', 'DECIMAL', 'NUMERIC')
 
-DATE = DBAPITypeObject('DATE')
+DATE = DBAPITypeObject('DATE', 'DATE')
 
-TIME = DBAPITypeObject('TIME')
+TIME = DBAPITypeObject('TIME', 'TIME')
 
-DATETIME = DBAPITypeObject('TIMESTAMP')
+DATETIME = DBAPITypeObject('TIMESTAMP', 'TIMESTAMP')
 
-ROWID = DBAPITypeObject('ROWID')
+# ROWID = DBAPITypeObject('ROWID', 'ROWID') # TODO: 'ROWID' not supported
 
 # DB-API 2.0 Module Interface Exceptions
 class Error(Exception):
@@ -351,6 +350,7 @@ class NotSupportedError(DatabaseError):
     pass
 
 # DB-API 2.0 Type Objects and Constructors
+import jpype.dbapi2
 
 def _java_sql_blob(data):
     return _java_array_byte(data)
@@ -362,10 +362,20 @@ def _str_func(func):
         return str(func(*parms))
     return to_str
 
+def _ts_converter(*parms):
+    if len(parms) >= 7:
+        nano = parms[6] * 1000
+    else:
+        nano = 0
+    return jpype.dbapi2.Timestamp(*parms[:6], nano=nano)
+
+TypedDate = lambda *parms: jpype.dbapi2.Date(*parms)
 Date = _str_func(datetime.date)
 
+TypedTime = lambda *parms: jpype.dbapi2.Time(*parms)
 Time = _str_func(datetime.time)
 
+TypedTimestamp = lambda *parms: _ts_converter(*parms)
 Timestamp = _str_func(datetime.datetime)
 
 def DateFromTicks(ticks):
@@ -395,17 +405,17 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     libs: Dll/so filenames or sequence of dlls/sos used as shared
           library by the JDBC driver
     """
-    if isinstance(driver_args, string_type):
+    if isinstance(driver_args, str):
         driver_args = [ driver_args ]
     if not driver_args:
        driver_args = []
     if jars:
-        if isinstance(jars, string_type):
+        if isinstance(jars, str):
             jars = [ jars ]
     else:
         jars = []
     if libs:
-        if isinstance(libs, string_type):
+        if isinstance(libs, str):
             libs = [ libs ]
     else:
         libs = []
@@ -465,6 +475,7 @@ class Cursor(object):
     _meta = None
     _prep = None
     _rs = None
+    _rs_initial_fetch = True
     _description = None
 
     def __init__(self, connection, converters):
@@ -510,6 +521,7 @@ class Cursor(object):
         """
         if self._rs:
             self._rs.close()
+            self._rs_initial_fetch = True
         self._rs = None
         if self._prep:
             self._prep.close()
@@ -536,6 +548,7 @@ class Cursor(object):
             _handle_sql_exception()
         if is_rs:
             self._rs = self._prep.getResultSet()
+            self._rs_initial_fetch = True
             self._meta = self._rs.getMetaData()
             self.rowcount = -1
         else:
@@ -556,45 +569,53 @@ class Cursor(object):
     def fetchone(self):
         if not self._rs:
             raise Error()
-        if not self._rs.next():
+        # if not self._rs.isBeforeFirst():
+        #     return None
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
             return None
-        row = []
-        for col in range(1, self._meta.getColumnCount() + 1):
-            sqltype = self._meta.getColumnType(col)
-            converter = self._converters.get(sqltype, _unknownSqlTypeConverter)
-            v = converter(self._rs, col)
-            row.append(v)
-        return tuple(row)
+
+        it = _jdbc_rs_to_arrow_iterator(self._rs, batch_size=1)
+        row = _arrow_iterator_to_rows(it, nrows=1)
+        return tuple(*row) if len(row) == 1 else None
 
     def fetchmany(self, size=None):
         if not self._rs:
             raise Error()
+        # if not self._rs.isBeforeFirst():
+        #     return []
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
+            return []
+
         if size is None:
             size = self.arraysize
-        # TODO: handle SQLException if not supported by db
-        self._rs.setFetchSize(size)
-        rows = []
-        row = None
-        for i in range(size):
-            row = self.fetchone()
-            if row is None:
-                break
-            else:
-                rows.append(row)
-        # reset fetch size
-        if row:
-            # TODO: handle SQLException if not supported by db
-            self._rs.setFetchSize(0)
+
+        assert size > 0, f"Fetchmany expects positive size other than size={size}."
+
+        it = _jdbc_rs_to_arrow_iterator(self._rs, size)
+        rows = _arrow_iterator_to_rows(it, size)
+
         return rows
 
     def fetchall(self):
-        rows = []
-        while True:
-            row = self.fetchone()
-            if row is None:
-                break
-            else:
-                rows.append(row)
+        if not self._rs:
+            raise Error()
+        # if not self._rs.isBeforeFirst():
+        #     return []
+
+        if self._rs_initial_fetch:
+            self._rs_initial_fetch = False
+        else:
+            return []
+        
+        it = _jdbc_rs_to_arrow_iterator(self._rs)
+        rows = _arrow_iterator_to_rows(it)
+
         return rows
 
     # optional nextset() unsupported
@@ -652,9 +673,7 @@ def _java_to_py(java_method):
         java_val = rs.getObject(col)
         if java_val is None:
             return
-        if PY2 and isinstance(java_val, (string_type, int, long, float, bool)):
-            return java_val
-        elif isinstance(java_val, (string_type, int, float, bool)):
+        if isinstance(java_val, (str, int, float, bool)):
             return java_val
         return getattr(java_val, java_method)()
     return to_py

@@ -48,8 +48,8 @@ You can get and install JayDeBeApi with `pip <http://pip.pypa.io/>`_ ::
 If you want to install JayDeBeApi in Jython make sure to have pip or
 EasyInstall available for it.
 
-Or you can get a copy of the source by cloning from the `JayDeBeApi
-github project <https://github.com/baztian/jaydebeapi>`_ and install
+Or you can get a copy of the source by cloning from the `JayDeBeApiArrow
+github project <https://github.com/HenryNebula/jaydebeapiArrow>`_ and install
 with ::
 
     $ python setup.py install
@@ -68,7 +68,7 @@ installations may cause problems.
 Usage
 =====
 
-Basically you just import the ``jaydebeapi`` Python module and execute
+Basically you just import the ``jaydebeapiarrow`` Python module and execute
 the ``connect`` method. This gives you a DB-API_ conform connection to
 the database.
 
@@ -88,8 +88,8 @@ environment.
 
 Here is an example:
 
->>> import jaydebeapi
->>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
+>>> import jaydebeapiarrow
+>>> conn = jaydebeapiarrow.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
 ...                           ["SA", ""],
 ...                           "/path/to/hsqldb.jar",)
@@ -115,7 +115,7 @@ my Ubuntu machine like this ::
 An alternative way to establish connection using connection
 properties:
 
->>> conn = jaydebeapi.connect("org.hsqldb.jdbcDriver",
+>>> conn = jaydebeapiarrow.connect("org.hsqldb.jdbcDriver",
 ...                           "jdbc:hsqldb:mem:.",
 ...                           {'user': "SA", 'password': "",
 ...                            'other_property': "foobar"},
@@ -123,7 +123,7 @@ properties:
 
 Also using the ``with`` statement might be handy:
 
->>> with jaydebeapi.connect("org.hsqldb.jdbcDriver",
+>>> with jaydebeapiarrow.connect("org.hsqldb.jdbcDriver",
 ...                         "jdbc:hsqldb:mem:.",
 ...                         ["SA", ""],
 ...                         "/path/to/hsqldb.jar",) as conn:
@@ -155,7 +155,7 @@ Contributing
 ============
 
 Please submit `bugs and patches
-<https://github.com/baztian/jaydebeapi/issues>`_. All contributors
+<https://github.com/HenryNebula/jaydebeapiArrow/issues>`_. All contributors
 will be acknowledged. Thanks!
 
 License

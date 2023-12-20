@@ -1,8 +1,8 @@
 create table Account (
 "ACCOUNT_ID" TIMESTAMP default CURRENT_TIMESTAMP not null,
 "ACCOUNT_NO" INTEGER not null,
-"BALANCE" DECIMAL default 0.0 not null,
-"BLOCKING" DECIMAL,
+"BALANCE" DECIMAL(10, 2) default 0.0 not null,
+"BLOCKING" DECIMAL(10, 2),
 "DBL_COL" DOUBLE,
 "OPENED_AT" DATE,
 "OPENED_AT_TIME" TIME,
