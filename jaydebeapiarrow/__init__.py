@@ -32,8 +32,11 @@ import re
 import sys
 import warnings
 
-import pyarrow
-import pyarrow.jvm
+from jaydebeapiarrow.lib.arrow_utils import \
+    convert_jdbc_rs_to_arrow_iterator, \
+    read_rows_from_arrow_iterator, \
+    create_pyarrow_batches_from_list, \
+    add_pyarrow_batches_to_statement
 
 
 def reraise(tp, value, tb=None):
@@ -117,23 +120,7 @@ def _jdbc_connect_jpype(jclassname, url, driver_args, jars, libs):
     if not jpype.isThreadAttachedToJVM():
         jpype.attachThreadToJVM()
         jpype.java.lang.Thread.currentThread().setContextClassLoader(jpype.java.lang.ClassLoader.getSystemClassLoader())
-    if _jdbc_name_to_const is None:
-        types = jpype.java.sql.Types
-        types_map = {}
-        if old_jpype:
-            for i in types.__javaclass__.getClassFields():
-                const = i.getStaticAttribute()
-                types_map[i.getName()] = const
-        else:
-            for i in types.class_.getFields():
-                if jpype.java.lang.reflect.Modifier.isStatic(i.getModifiers()):
-                    const = i.get(None)
-                    types_map[i.getName()] = const
-        _init_types(types_map)
-    global _java_array_byte
-    if _java_array_byte is None:
-        def _java_array_byte(data):
-            return jpype.JArray(jpype.JByte, 1)(data)
+
     # register driver for DriverManager
     jpype.JClass(jclassname)
     if isinstance(driver_args, dict):
@@ -174,10 +161,7 @@ def _prepare_jpype():
     global _handle_sql_exception
     _handle_sql_exception = _handle_sql_exception_jpype
 
-if sys.platform.lower().startswith('java'):
-    _prepare_jython()
-else:
-    _prepare_jpype()
+_prepare_jpype()
 
 
 def _get_arrow_jar_paths():
@@ -186,76 +170,6 @@ def _get_arrow_jar_paths():
     assert len(arrow_jars) > 0, f"Can not find arrow-jdbc JAR file at {search_path}"
     return arrow_jars
 
-def _jdbc_rs_to_arrow_iterator(rs, batch_size=1024):
-    import jpype.imports
-    from jpype.types import JInt
-    from java.sql import Types, JDBCType
-    from java.util import HashMap
-    from java.math import RoundingMode
-    from org.apache.arrow.adapter.jdbc import JdbcToArrowUtils, JdbcToArrowConfigBuilder, JdbcToArrow, JdbcFieldInfo
-    from org.apache.arrow.memory import RootAllocator
-
-    ra = RootAllocator(sys.maxsize)
-    batch_size = max(min(batch_size, 100_000), 1)
-
-    # calendar = JdbcToArrowUtils.getUtcCalendar()
-    calendar = None
-
-    from org.jaydebeapiarrow.extension import ExplicitTypeMapper
-    explicit_type_mapper = ExplicitTypeMapper()
-    explicit_mapping = explicit_type_mapper.createExplicitTypeMapping(rs)
-
-    from org.jaydebeapiarrow.extension import OverriddenConsumer
-    overriden_consumer = OverriddenConsumer(calendar)
-
-    arrow_jdbc_config = (
-        JdbcToArrowConfigBuilder()
-        .setAllocator(ra)
-        .setCalendar(calendar)
-        .setTargetBatchSize(batch_size)
-        .setBigDecimalRoundingMode(RoundingMode.UNNECESSARY)
-        .setExplicitTypesByColumnIndex(explicit_mapping)
-        .setIncludeMetadata(True)
-        .setJdbcToArrowTypeConverter(overriden_consumer.getJdbcToArrowTypeConverter)
-        .setJdbcConsumerGetter(overriden_consumer.getConsumer)
-        .build()
-    )
-
-    iterator = JdbcToArrow.sqlToArrowVectorIterator(rs, arrow_jdbc_config)
-
-    return iterator
-
-
-def _arrow_iterator_to_rows(it, nrows=-1):
-    root = None
-    rows = []
-
-    nrows_remaining = nrows
-
-    try:
-        for root in it:
-            batch = pyarrow.jvm.record_batch(root).to_pylist()
-            _rows = [tuple(r.values()) for r in batch]
-            if nrows_remaining > 0:
-                _rows = _rows[:min(len(_rows), nrows_remaining)]
-                nrows_remaining -= len(_rows)
-            else:
-                if nrows > 0:
-                    break
-            rows.extend(_rows)
-            # print(f"Finish pulling {len(_rows)} rows")
-    except Exception as e:
-        import sys, traceback
-        traceback.print_exc()
-        print(f"Error converting iterator to rows: {e}")
-        raise e
-    finally:
-        if root is not None:
-            root.clear()
-    
-    if nrows > 0:
-        assert nrows >= len(rows), f"Mismatched number rows: {len(rows)} (expected {nrows})"
-    return rows
 
 apilevel = '2.0'
 threadsafety = 1
@@ -378,15 +292,6 @@ Time = _str_func(datetime.time)
 TypedTimestamp = lambda *parms: _ts_converter(*parms)
 Timestamp = _str_func(datetime.datetime)
 
-def DateFromTicks(ticks):
-    return apply(Date, time.localtime(ticks)[:3])
-
-def TimeFromTicks(ticks):
-    return apply(Time, time.localtime(ticks)[3:6])
-
-def TimestampFromTicks(ticks):
-    return apply(Timestamp, time.localtime(ticks)[:6])
-
 # DB-API 2.0 Module Interface connect constructor
 def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     """Open a connection to a database using a JDBC driver and return
@@ -420,7 +325,7 @@ def connect(jclassname, url, driver_args=None, jars=None, libs=None):
     else:
         libs = []
     jconn = _jdbc_connect(jclassname, url, driver_args, jars, libs)
-    return Connection(jconn, _converters)
+    return Connection(jconn)
 
 # DB-API 2.0 Connection Object
 class Connection(object):
@@ -436,10 +341,9 @@ class Connection(object):
     DataError = DataError
     NotSupportedError = NotSupportedError
 
-    def __init__(self, jconn, converters):
+    def __init__(self, jconn):
         self.jconn = jconn
         self._closed = False
-        self._converters = converters
 
     def close(self):
         if self._closed:
@@ -460,7 +364,7 @@ class Connection(object):
             _handle_sql_exception()
 
     def cursor(self):
-        return Cursor(self, self._converters)
+        return Cursor(self)
 
     def __enter__(self):
         return self
@@ -478,9 +382,8 @@ class Cursor(object):
     _rs_initial_fetch = True
     _description = None
 
-    def __init__(self, connection, converters):
+    def __init__(self, connection):
         self._connection = connection
-        self._converters = converters
 
     @property
     def description(self):
@@ -529,10 +432,14 @@ class Cursor(object):
         self._meta = None
         self._description = None
 
-    def _set_stmt_parms(self, prep_stmt, parameters):
-        for i in range(len(parameters)):
-            # print (i, parameters[i], type(parameters[i]))
-            prep_stmt.setObject(i + 1, parameters[i])
+    # def _set_stmt_parms(self, prep_stmt, parameters):
+    #     for i in range(len(parameters)):
+    #         # print (i, parameters[i], type(parameters[i]))
+    #         prep_stmt.setObject(i + 1, parameters[i])
+
+    def _set_stmt_parms(self, statement, parameters):
+        batches = create_pyarrow_batches_from_list(parameters)
+        add_pyarrow_batches_to_statement(batches, statement)
 
     def execute(self, operation, parameters=None):
         if self._connection._closed:
@@ -558,9 +465,7 @@ class Cursor(object):
     def executemany(self, operation, seq_of_parameters):
         self._close_last()
         self._prep = self._connection.jconn.prepareStatement(operation)
-        for parameters in seq_of_parameters:
-            self._set_stmt_parms(self._prep, parameters)
-            self._prep.addBatch()
+        self._set_stmt_parms(self._prep, seq_of_parameters)
         update_counts = self._prep.executeBatch()
         # self._prep.getWarnings() ???
         self.rowcount = sum(update_counts)
@@ -577,8 +482,8 @@ class Cursor(object):
         else:
             return None
 
-        it = _jdbc_rs_to_arrow_iterator(self._rs, batch_size=1)
-        row = _arrow_iterator_to_rows(it, nrows=1)
+        it = convert_jdbc_rs_to_arrow_iterator(self._rs, batch_size=1)
+        row = read_rows_from_arrow_iterator(it, nrows=1)
         return tuple(*row) if len(row) == 1 else None
 
     def fetchmany(self, size=None):
@@ -597,8 +502,8 @@ class Cursor(object):
 
         assert size > 0, f"Fetchmany expects positive size other than size={size}."
 
-        it = _jdbc_rs_to_arrow_iterator(self._rs, size)
-        rows = _arrow_iterator_to_rows(it, size)
+        it = convert_jdbc_rs_to_arrow_iterator(self._rs, size)
+        rows = read_rows_from_arrow_iterator(it, size)
 
         return rows
 
@@ -613,8 +518,8 @@ class Cursor(object):
         else:
             return []
         
-        it = _jdbc_rs_to_arrow_iterator(self._rs)
-        rows = _arrow_iterator_to_rows(it)
+        it = convert_jdbc_rs_to_arrow_iterator(self._rs)
+        rows = read_rows_from_arrow_iterator(it)
 
         return rows
 
@@ -634,109 +539,3 @@ class Cursor(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-def _unknownSqlTypeConverter(rs, col):
-    return rs.getObject(col)
-
-def _to_datetime(rs, col):
-    java_val = rs.getTimestamp(col)
-    if not java_val:
-        return
-    d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
-    d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
-    return str(d)
-
-def _to_time(rs, col):
-    java_val = rs.getTime(col)
-    if not java_val:
-        return
-    return str(java_val)
-
-def _to_date(rs, col):
-    java_val = rs.getDate(col)
-    if not java_val:
-        return
-    # The following code requires Python 3.3+ on dates before year 1900.
-    # d = datetime.datetime.strptime(str(java_val)[:10], "%Y-%m-%d")
-    # return d.strftime("%Y-%m-%d")
-    # Workaround / simpler soltution (see
-    # https://github.com/baztian/jaydebeapi/issues/18):
-    return str(java_val)[:10]
-
-def _to_binary(rs, col):
-    java_val = rs.getObject(col)
-    if java_val is None:
-        return
-    return str(java_val)
-
-def _java_to_py(java_method):
-    def to_py(rs, col):
-        java_val = rs.getObject(col)
-        if java_val is None:
-            return
-        if isinstance(java_val, (str, int, float, bool)):
-            return java_val
-        return getattr(java_val, java_method)()
-    return to_py
-
-def _java_to_py_bigdecimal():
-    def to_py(rs, col):
-        java_val = rs.getObject(col)
-        if java_val is None:
-            return
-        if hasattr(java_val, 'scale'):
-            scale = java_val.scale()
-            if scale == 0:
-                return java_val.longValue()
-            else:
-                return java_val.doubleValue()
-        else:
-            return float(java_val)
-    return to_py
-
-_to_double = _java_to_py('doubleValue')
-
-_to_int = _java_to_py('intValue')
-
-_to_boolean = _java_to_py('booleanValue')
-
-_to_decimal = _java_to_py_bigdecimal()
-
-def _init_types(types_map):
-    global _jdbc_name_to_const
-    _jdbc_name_to_const = types_map
-    global _jdbc_const_to_name
-    _jdbc_const_to_name = dict((y,x) for x,y in types_map.items())
-    _init_converters(types_map)
-
-def _init_converters(types_map):
-    """Prepares the converters for conversion of java types to python
-    objects.
-    types_map: Mapping of java.sql.Types field name to java.sql.Types
-    field constant value"""
-    global _converters
-    _converters = {}
-    for i in _DEFAULT_CONVERTERS:
-        const_val = types_map[i]
-        _converters[const_val] = _DEFAULT_CONVERTERS[i]
-
-# Mapping from java.sql.Types field to converter method
-_converters = None
-
-_DEFAULT_CONVERTERS = {
-    # see
-    # http://download.oracle.com/javase/8/docs/api/java/sql/Types.html
-    # for possible keys
-    'TIMESTAMP': _to_datetime,
-    'TIME': _to_time,
-    'DATE': _to_date,
-    'BINARY': _to_binary,
-    'DECIMAL': _to_decimal,
-    'NUMERIC': _to_decimal,
-    'DOUBLE': _to_double,
-    'FLOAT': _to_double,
-    'TINYINT': _to_int,
-    'INTEGER': _to_int,
-    'SMALLINT': _to_int,
-    'BOOLEAN': _to_boolean,
-    'BIT': _to_boolean
-}
