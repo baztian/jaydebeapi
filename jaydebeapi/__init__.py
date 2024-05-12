@@ -519,8 +519,10 @@ class Cursor(object):
 
     def _set_stmt_parms(self, prep_stmt, parameters):
         for i in range(len(parameters)):
-            # print (i, parameters[i], type(parameters[i]))
-            prep_stmt.setObject(i + 1, parameters[i])
+            if parameters[i] is None:
+                prep_stmt.setNull(i + 1, 0)  # java.sql.Types.Null
+            else:
+                prep_stmt.setObject(i + 1, parameters[i])
 
     def execute(self, operation, parameters=None):
         if self._connection._closed:
